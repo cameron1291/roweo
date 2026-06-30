@@ -6,13 +6,23 @@ import { PROJECT_TYPE_LABELS } from '@/lib/seo/get-location-data'
 
 export const dynamic = 'force-dynamic'
 
+const TYPE_BADGE: Record<string, string> = {
+  extension: 'bg-blue-100 text-blue-700',
+  renovation: 'bg-purple-100 text-purple-700',
+  new_dwelling: 'bg-green-100 text-green-700',
+  granny_flat: 'bg-yellow-100 text-yellow-700',
+  pool: 'bg-cyan-100 text-cyan-700',
+  duplex: 'bg-orange-100 text-orange-700',
+  other: 'bg-gray-100 text-gray-600',
+}
+
 type Props = { params: Promise<{ postcode: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { postcode } = await params
   return {
-    title: `Builder Leads for Postcode ${postcode} — Find DA Leads`,
-    description: `Find homeowners in postcode ${postcode} who have lodged development applications. Roweo matches residential builders to real planning leads.`,
+    title: `Builder Leads Postcode ${postcode} — DA Leads for Builders | Roweo`,
+    description: `Find homeowners planning extensions, renovations and new builds in postcode ${postcode}. Roweo matches residential builders to development applications and posts letters on your behalf.`,
   }
 }
 
@@ -41,65 +51,118 @@ export default async function PostcodeLeadsPage({ params }: Props) {
   const das = dasResult.data ?? []
   const suburbs = postcodeData.suburbs ?? []
   const state = postcodeData.state
+  const citySlug = state === 'NSW' ? 'sydney' : state === 'VIC' ? 'melbourne' : state === 'QLD' ? 'brisbane' : state === 'ACT' ? 'canberra' : state.toLowerCase()
 
   return (
-    <div className="bg-zinc-950 text-white">
+    <>
       {postcodeData.da_count <= 3 && <meta name="robots" content="noindex" />}
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-semibold mb-4">
-          Builder Leads for Postcode {postcode}, {state}
-        </h1>
-        <p className="text-zinc-400 text-lg mb-4">
-          {postcodeData.da_count} development applications lodged in postcode {postcode}.
-          {suburbs.length > 0 && ` Covers ${suburbs.join(', ')}.`}
-        </p>
 
-        {das.length > 0 && (
-          <div className="bg-white/3 border border-white/5 rounded-xl divide-y divide-white/5 mb-10">
-            {das.map((da, i) => (
-              <div key={i} className="px-5 py-4 flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded text-zinc-400">
-                      {PROJECT_TYPE_LABELS[da.project_type] ?? da.project_type}
-                    </span>
-                    <span className="text-xs text-zinc-600">{da.suburb}</span>
-                  </div>
-                  <p className="text-sm text-zinc-300">{da.description?.slice(0, 100)}{(da.description?.length ?? 0) > 100 ? '…' : ''}</p>
-                </div>
-                <p className="text-xs text-zinc-600 shrink-0">{da.lodged_date}</p>
-              </div>
-            ))}
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-100 py-3">
+        <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400">
+          <Link href="/" className="hover:text-gray-700">Roweo</Link>
+          <span className="mx-1.5">›</span>
+          <span className="text-gray-600">Builder leads {postcode}</span>
+        </nav>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 py-12">
+
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-[#1B2A4A] mb-3">
+            Builder Leads — Postcode {postcode}, {state}
+          </h1>
+          <p className="text-gray-500 text-lg max-w-2xl">
+            {postcodeData.da_count} development application{postcodeData.da_count === 1 ? '' : 's'} on record in postcode {postcode}.
+            {suburbs.length > 0 && ` Covers ${suburbs.join(', ')}.`}
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">{postcodeData.da_count}</p>
+            <p className="text-xs text-gray-500 mt-1">Total applications</p>
           </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">{suburbs.length || '—'}</p>
+            <p className="text-xs text-gray-500 mt-1">Suburbs covered</p>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">2 days</p>
+            <p className="text-xs text-gray-500 mt-1">Letter turnaround</p>
+          </div>
+        </div>
+
+        {/* Recent DAs */}
+        {das.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold text-[#1B2A4A] mb-4">
+              Recent DAs in postcode {postcode}
+            </h2>
+            <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
+              {das.map((da, i) => (
+                <div key={i} className="px-5 py-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
+                          {PROJECT_TYPE_LABELS[da.project_type] ?? da.project_type}
+                        </span>
+                        <span className="text-xs text-gray-400">{da.suburb}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 truncate">
+                        {da.description?.slice(0, 120)}{(da.description?.length ?? 0) > 120 ? '…' : ''}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-gray-400">{da.lodged_date}</p>
+                      {da.estimated_value_aud && (
+                        <p className="text-sm text-gray-500 mt-0.5">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
+        {/* Suburbs in this postcode */}
         {suburbs.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-sm font-medium text-zinc-500 mb-3">Suburbs in postcode {postcode}</h2>
+          <section className="mb-10">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">
+              Suburbs in postcode {postcode}
+            </h2>
             <div className="flex flex-wrap gap-2">
               {suburbs.map((s: string) => (
                 <Link
                   key={s}
-                  href={`/construction-leads/${state.toLowerCase()}/sydney/${s.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-xs border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-full transition-colors text-zinc-400 hover:text-white"
+                  href={`/construction-leads/${state.toLowerCase()}/${citySlug}/${s.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="text-xs border border-gray-200 hover:border-[#1B2A4A] text-gray-500 hover:text-[#1B2A4A] px-3 py-1.5 rounded-full transition-colors"
                 >
                   {s}
                 </Link>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        <div className="bg-blue-600/10 border border-blue-600/20 rounded-xl p-8">
-          <h2 className="font-semibold mb-2">Get matched to leads in postcode {postcode}</h2>
-          <p className="text-sm text-zinc-400 mb-4">
-            Roweo automatically matches you to DAs in your service suburbs and sends professional letters to homeowners. $299/month flat rate.
+        {/* CTA */}
+        <div className="bg-[#1B2A4A] rounded-xl p-8 text-white">
+          <h2 className="font-bold text-xl mb-2">Get matched to leads in postcode {postcode}</h2>
+          <p className="text-blue-200 text-sm mb-5 max-w-lg">
+            Roweo matches you to every new DA in your service suburbs and posts a professional letter to the homeowner within 2 business days. From $149/month, no lock-in.
           </p>
-          <Link href="/signup" className="inline-block bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
-            Start free trial
+          <Link
+            href="/signup"
+            className="inline-block bg-white hover:bg-gray-100 text-[#1B2A4A] font-bold px-6 py-3 rounded-lg transition-colors text-sm"
+          >
+            Get started from $149/month
           </Link>
+          <p className="text-blue-300 text-sm mt-3">No contracts. Cancel any time.</p>
         </div>
       </div>
-    </div>
+    </>
   )
 }

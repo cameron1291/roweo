@@ -5,6 +5,16 @@ import { getLocationData, PROJECT_TYPE_LABELS } from '@/lib/seo/get-location-dat
 
 export const dynamic = 'force-dynamic'
 
+const TYPE_BADGE: Record<string, string> = {
+  extension: 'bg-blue-100 text-blue-700',
+  renovation: 'bg-purple-100 text-purple-700',
+  new_dwelling: 'bg-green-100 text-green-700',
+  granny_flat: 'bg-yellow-100 text-yellow-700',
+  pool: 'bg-cyan-100 text-cyan-700',
+  duplex: 'bg-orange-100 text-orange-700',
+  other: 'bg-gray-100 text-gray-600',
+}
+
 type Props = { params: Promise<{ state: string; city: string; suburb: string }> }
 
 function capitalize(s: string) {
@@ -16,9 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const suburb = capitalize(suburbSlug)
   const stateUpper = state.toUpperCase()
   return {
-    title: `Development Applications in ${suburb}, ${stateUpper} — Recent DAs`,
-    description: `Browse recent development applications lodged in ${suburb}, ${stateUpper}. See project types, lodgement dates, and how to connect with homeowners planning projects.`,
-    alternates: { canonical: `/development-applications/${state}/${capitalize(suburbSlug).toLowerCase()}/${suburbSlug}` },
+    title: `Development Applications ${suburb} ${stateUpper} — Recent DA Lodgements`,
+    description: `Browse recent development applications lodged in ${suburb}, ${stateUpper}. See project types, lodgement dates and estimated values. Updated daily from Australian planning portals.`,
+    alternates: { canonical: `/development-applications/${state}/${suburbSlug}/${suburbSlug}` },
   }
 }
 
@@ -34,91 +44,122 @@ export default async function DevelopmentApplicationsSuburbPage({ params }: Prop
   const noindex = data.daCount <= 3
 
   return (
-    <div className="bg-zinc-950 text-white">
+    <div className={noindex ? 'hidden' : ''}>
       {noindex && <meta name="robots" content="noindex" />}
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <nav className="text-xs text-zinc-600 mb-6">
-          <Link href="/" className="hover:text-zinc-400">Roweo</Link>
-          <span className="mx-2">›</span>
-          <Link href={`/development-applications/${state}/${city}`} className="hover:text-zinc-400">
+
+      {/* Breadcrumb */}
+      <div className="bg-gray-50 border-b border-gray-100 py-3">
+        <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-gray-700">Roweo</Link>
+          <span>›</span>
+          <Link href={`/development-applications/${state}/${city}`} className="hover:text-gray-700">
             {capitalize(city)}, {stateUpper}
           </Link>
-          <span className="mx-2">›</span>
-          <span className="text-zinc-400">{suburb}</span>
+          <span>›</span>
+          <span className="text-gray-600">{suburb}</span>
         </nav>
+      </div>
 
-        <h1 className="text-3xl font-semibold mb-4">
-          Development Applications in {suburb}, {stateUpper}
-        </h1>
-        <p className="text-zinc-400 text-lg mb-10">
-          {data.daCount} development applications lodged in {suburb} — {data.daCount30d} in the last 30 days.
-          Data sourced from the NSW Planning Portal, updated daily.
-        </p>
+      <div className="max-w-5xl mx-auto px-6 py-12">
 
-        {data.daCount > 0 && (
-          <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="bg-white/5 border border-white/5 rounded-lg p-4 text-center">
-              <p className="text-2xl font-semibold">{data.daCount}</p>
-              <p className="text-xs text-zinc-500 mt-1">Total applications</p>
-            </div>
-            <div className="bg-white/5 border border-white/5 rounded-lg p-4 text-center">
-              <p className="text-2xl font-semibold">{data.daCount30d}</p>
-              <p className="text-xs text-zinc-500 mt-1">Last 30 days</p>
-            </div>
-            <div className="bg-white/5 border border-white/5 rounded-lg p-4 text-center">
-              <p className="text-2xl font-semibold">{data.topProjectTypes.length}</p>
-              <p className="text-xs text-zinc-500 mt-1">Project types lodged</p>
-            </div>
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-[#1B2A4A] mb-3">
+            Development Applications in {suburb}, {stateUpper}
+          </h1>
+          <p className="text-gray-500 text-lg max-w-2xl">
+            {data.daCount30d > 0
+              ? `${data.daCount30d} DAs lodged in ${suburb} in the last 30 days. ${data.daCount} total on record.`
+              : `${data.daCount} development application${data.daCount === 1 ? '' : 's'} on record in ${suburb}.`}{' '}
+            Data sourced from Australian government planning portals, updated daily.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-10">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">{data.daCount}</p>
+            <p className="text-xs text-gray-500 mt-1">Total applications</p>
           </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">{data.daCount30d}</p>
+            <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-center">
+            <p className="text-3xl font-bold text-[#1B2A4A]">{data.topProjectTypes.length || '—'}</p>
+            <p className="text-xs text-gray-500 mt-1">Project types</p>
+          </div>
+        </div>
+
+        {/* Project type breakdown */}
+        {data.topProjectTypes.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-base font-semibold text-[#1B2A4A] mb-3">Project types in {suburb}</h2>
+            <div className="flex flex-wrap gap-2">
+              {data.topProjectTypes.map(t => (
+                <span key={t.type} className={`text-sm px-3 py-1.5 rounded-full font-medium ${TYPE_BADGE[t.type] ?? TYPE_BADGE.other}`}>
+                  {PROJECT_TYPE_LABELS[t.type] ?? t.type} ({t.count})
+                </span>
+              ))}
+            </div>
+          </section>
         )}
 
+        {/* Recent DAs */}
         {data.recentDas.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-lg font-semibold mb-4">Recent applications in {suburb}</h2>
-            <div className="bg-white/3 border border-white/5 rounded-xl divide-y divide-white/5">
+            <h2 className="text-lg font-bold text-[#1B2A4A] mb-4">Recent applications in {suburb}</h2>
+            <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
               {data.recentDas.map((da, i) => (
-                <div key={i} className="px-5 py-4">
+                <div key={i} className="px-5 py-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <span className="text-xs bg-white/10 px-1.5 py-0.5 rounded text-zinc-400">
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
                         {PROJECT_TYPE_LABELS[da.project_type] ?? da.project_type}
                       </span>
-                      <p className="text-sm mt-1.5 text-zinc-300">{da.description?.slice(0, 120)}{(da.description?.length ?? 0) > 120 ? '…' : ''}</p>
+                      <p className="text-sm mt-1.5 text-gray-700 truncate">
+                        {da.description?.slice(0, 130)}{(da.description?.length ?? 0) > 130 ? '…' : ''}
+                      </p>
                     </div>
-                    <p className="text-xs text-zinc-600 shrink-0">{da.lodged_date}</p>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-gray-400">{da.lodged_date}</p>
+                      {da.estimated_value_aud && (
+                        <p className="text-sm text-gray-500 mt-0.5">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-zinc-700 mt-2">
-              Data sourced from NSW Planning Portal under CC BY 4.0. Homeowner personal details are not displayed.
+            <p className="text-xs text-gray-400 mt-2">
+              DA data sourced from Australian government planning portals under open government licences. No homeowner personal details displayed.
             </p>
           </section>
         )}
 
-        <div className="bg-blue-600/10 border border-blue-600/20 rounded-xl p-8 mb-10">
-          <h2 className="font-semibold mb-2">Are you a builder in {suburb}?</h2>
-          <p className="text-sm text-zinc-400 mb-4">
-            Roweo matches you to every new DA in your service area and posts a professional letter to the property on your behalf.
-            $299/month, flat rate.
+        {/* Builder CTA */}
+        <div className="bg-[#1B2A4A] rounded-xl p-8 mb-10 text-white">
+          <h2 className="font-bold text-xl mb-2">Are you a builder working in {suburb}?</h2>
+          <p className="text-blue-200 text-sm mb-5 max-w-lg">
+            Roweo matches you to every new DA in your service area and posts a letter to the homeowner in your name within 2 business days. From $149/month, no lock-in.
           </p>
           <Link
             href="/signup"
-            className="inline-block bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            className="inline-block bg-white hover:bg-gray-100 text-[#1B2A4A] font-bold px-6 py-3 rounded-lg transition-colors text-sm"
           >
-            Start free trial
+            Get started from $149/month
           </Link>
         </div>
 
+        {/* Nearby suburbs */}
         {data.nearbySuburbs.length > 0 && (
           <section>
-            <h2 className="text-sm font-medium text-zinc-500 mb-3">Nearby suburbs</h2>
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">Nearby suburbs</h2>
             <div className="flex flex-wrap gap-2">
               {data.nearbySuburbs.map(s => (
                 <Link
                   key={s.name}
                   href={`/development-applications/${s.state.toLowerCase()}/${city}/${s.slug}`}
-                  className="text-xs border border-white/10 hover:border-white/30 px-3 py-1.5 rounded-full transition-colors text-zinc-400 hover:text-white"
+                  className="text-xs border border-gray-200 hover:border-[#1B2A4A] text-gray-500 hover:text-[#1B2A4A] px-3 py-1.5 rounded-full transition-colors"
                 >
                   {s.name}
                 </Link>
