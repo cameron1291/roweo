@@ -28,7 +28,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between gap-10">
             <div className="max-w-xs">
-              <Logo height={20} />
+              <Logo height={60} />
               <p className="text-sm text-gray-500 mt-3">
                 DA leads for Australian residential builders. Find homeowners planning projects in your area before your competitors do.
               </p>
