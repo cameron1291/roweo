@@ -1,13 +1,13 @@
 """
-watcher.py - APScheduler daemon for DA scraping and daily email digest.
-Adapted from ~/launchpad/crawler/watcher.py.
+watcher.py - APScheduler daemon for DA ingestion and daily email digest.
 
-Runs two scheduled jobs:
-  - NSW ePlanning scraper: every 6 hours (main volume source)
-  - ACT portal scraper: every 12 hours (smaller volume, slower site)
-  - Daily founder digest: 8am AEST every day
+Scheduled jobs:
+  - council-da.com API (all Australian states): every 6 hours
+  - Approval-stage matcher: daily at 2am AEST
+  - Founder digest email: daily at 8am AEST
+  - Lifecycle emails: daily at 9am AEST
 
-Deploy to Railway as a background worker service with the same environment variables.
+Deploy to Railway as a background worker service.
 """
 
 import sys
@@ -37,24 +37,15 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def run_nsw_scraper():
-    log.info("Scheduled: NSW ePlanning scraper starting")
+def run_da_ingestion():
+    """Ingest all Australian states via council-da.com API."""
+    log.info("Scheduled: council-da.com Australia-wide ingestion starting")
     try:
-        from sources.nsw_eplanning import run
+        from sources.council_da_api import run
         result = run(days_back=1)
-        log.info(f"NSW done: {result['das_new']} new DAs, {result['matches_created']} matches")
+        log.info(f"Ingestion done: {result['das_new']} new DAs across all states, {result['matches_created']} matches, {len(result['errors'])} errors")
     except Exception as e:
-        log.error(f"NSW scraper error: {e}")
-
-
-def run_act_scraper():
-    log.info("Scheduled: ACT portal scraper starting")
-    try:
-        from sources.act_portal import run
-        result = run(days_back=1)
-        log.info(f"ACT done: {result['das_new']} new DAs, {result['matches_created']} matches")
-    except Exception as e:
-        log.error(f"ACT scraper error: {e}")
+        log.error(f"DA ingestion error: {e}")
 
 
 def run_approval_matcher():
@@ -64,10 +55,9 @@ def run_approval_matcher():
         from datetime import timedelta
         since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
         from shared.matcher import process_approval_stage_matches
-        for source in ("nsw_eplanning", "act_portal"):
-            created = process_approval_stage_matches(source, since)
-            if created:
-                log.info(f"Approval matcher ({source}): {created} second-stage matches created")
+        created = process_approval_stage_matches("council_da", since)
+        if created:
+            log.info(f"Approval matcher: {created} second-stage matches created")
     except Exception as e:
         log.error(f"Approval matcher error: {e}")
 
@@ -93,18 +83,17 @@ def run_lifecycle_emails():
 
 
 def main():
-    log.info("Roweo watcher started — NSW (6h), ACT (12h), approval matcher (daily 2am), digest (daily 8am AEST)")
+    log.info("Roweo watcher started — all AU states via council-da.com (6h), approval matcher (2am), digest (8am AEST)")
 
     scheduler = BackgroundScheduler(timezone="Australia/Sydney")
-    scheduler.add_job(run_nsw_scraper, "interval", hours=6, id="nsw_scraper")
-    scheduler.add_job(run_act_scraper, "interval", hours=12, id="act_scraper")
+    scheduler.add_job(run_da_ingestion, "interval", hours=6, id="da_ingestion")
     scheduler.add_job(run_approval_matcher, "cron", hour=2, minute=0, id="approval_matcher")
     scheduler.add_job(run_daily_digest, "cron", hour=8, minute=0, id="daily_digest")
     scheduler.add_job(run_lifecycle_emails, "cron", hour=9, minute=0, id="lifecycle_emails")
     scheduler.start()
 
-    log.info("Scheduler started. Running initial NSW scrape now...")
-    run_nsw_scraper()
+    log.info("Scheduler started. Running initial Australia-wide ingestion now...")
+    run_da_ingestion()
 
     while True:
         time.sleep(60)
