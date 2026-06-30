@@ -513,7 +513,7 @@ export default function OnboardingPage() {
                 <ul className="text-sm text-zinc-400 space-y-1 list-disc list-inside">
                   <li>Your company logo and brand colours</li>
                   <li>The homeowner's property address and DA reference</li>
-                  <li>A personalised introduction (AI-written per project)</li>
+                  <li>A personalised introduction written for the specific project type</li>
                   <li>Your contact details: {[form.phone, form.website].filter(Boolean).join(' · ') || 'add in settings'}</li>
                   <li>A unique QR code linking to your profile and quote form</li>
                   <li>A legal compliance disclaimer</li>

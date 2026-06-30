@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase-server'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Construction Leads for Sydney Builders — Development Application Alerts | Roweo',
+  title: 'Construction Leads for Australian Builders — DA Lead Alerts | Roweo',
   description: 'Get matched to homeowners who have lodged development applications in your area. Roweo sends a professional letter on your behalf and tracks who responds. From $149/month.',
 }
 
@@ -15,7 +15,6 @@ async function getLiveDaCount() {
     const { count } = await supabase
       .from('development_applications')
       .select('id', { count: 'exact', head: true })
-      .eq('state', 'NSW')
       .gte('lodged_date', thirtyDaysAgo)
     return count ?? 0
   } catch {
@@ -33,7 +32,7 @@ export default async function HomePage() {
       <section className="max-w-5xl mx-auto px-6 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-4 py-1.5 mb-8">
           <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-          {displayCount} development applications lodged in Greater Sydney in the last 30 days
+          {displayCount} development applications lodged across Australia in the last 30 days
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold text-[#1B2A4A] leading-tight tracking-tight">
@@ -74,8 +73,8 @@ export default async function HomePage() {
             <p className="text-sm text-gray-500 mt-1">from DA to letter in the post</p>
           </div>
           <div>
-            <p className="text-3xl font-bold text-[#1B2A4A]">NSW + ACT</p>
-            <p className="text-sm text-gray-500 mt-1">live DA data, updated daily</p>
+            <p className="text-3xl font-bold text-[#1B2A4A]">Australia-wide</p>
+            <p className="text-sm text-gray-500 mt-1">all states, updated daily</p>
           </div>
         </div>
       </section>
@@ -126,7 +125,7 @@ export default async function HomePage() {
             {[
               {
                 title: 'Real DA data, updated daily',
-                body: 'Every development application lodged at NSW and ACT councils, classified by project type and matched to your service area. You see exactly what\'s being planned near you.',
+                body: 'Every development application lodged at councils across Australia, classified by project type and matched to your service area. You see exactly what\'s being planned near you.',
               },
               {
                 title: 'Professional branded letters',
