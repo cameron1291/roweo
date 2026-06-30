@@ -165,10 +165,6 @@ export default function PricingPage() {
                 a: 'Growth adds a 50 km search radius (vs 20 km on Professional) and priority matching on high-value DAs. Good for builders covering multiple suburbs or in regional areas with fewer DAs nearby.',
               },
               {
-                q: 'Is this similar to Buildscout?',
-                a: 'Buildscout is a UK product that charges per letter ($1.60–$2.00 each). Our plans include letters at a flat monthly rate — predictable costs, no surprises. See our full comparison.',
-              },
-              {
                 q: 'Can I cancel at any time?',
                 a: 'Yes. Cancel through your billing settings. You keep access until the end of your billing period. No lock-in, no cancellation fees.',
               },

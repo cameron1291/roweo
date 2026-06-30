@@ -10,7 +10,6 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <nav className="hidden md:flex items-center gap-7 text-sm text-gray-500">
             <Link href="/demo" className="hover:text-gray-900 transition-colors">See demo</Link>
             <Link href="/pricing" className="hover:text-gray-900 transition-colors">Pricing</Link>
-            <Link href="/vs-buildscout" className="hover:text-gray-900 transition-colors">vs Buildscout</Link>
             <Link href="/login" className="hover:text-gray-900 transition-colors">Log in</Link>
           </nav>
           <Link
@@ -42,7 +41,6 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 <div className="space-y-3 text-gray-500">
                   <Link href="/demo" className="block hover:text-gray-900 transition-colors">Live demo</Link>
                   <Link href="/pricing" className="block hover:text-gray-900 transition-colors">Pricing</Link>
-                  <Link href="/vs-buildscout" className="block hover:text-gray-900 transition-colors">vs Buildscout</Link>
                 </div>
               </div>
               <div>
