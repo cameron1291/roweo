@@ -56,7 +56,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="mt-10 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-gray-400">
-            <p>© {new Date().getFullYear()} Roweo. ABN to be confirmed.</p>
+            <p>© {new Date().getFullYear()} Roweo. ABN 31 683 026 924.</p>
             <p>Built in Australia for Australian builders.</p>
           </div>
         </div>

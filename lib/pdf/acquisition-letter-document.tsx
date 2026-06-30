@@ -266,7 +266,7 @@ export function AcquisitionLetterDocument({ props }: { props: AcquisitionLetterP
           </Text>
 
           <View style={styles.disclaimer}>
-            <Text>This letter is commercial correspondence from Roweo (ABN to be confirmed), Sydney NSW. If you do not wish to receive further letters from us, please email hello@roweo.com.au or visit {demoUrl}.</Text>
+            <Text>This letter is commercial correspondence from Roweo (ABN 31 683 026 924), Sydney NSW. If you do not wish to receive further letters from us, please email hello@roweo.com.au or visit {demoUrl}.</Text>
           </View>
         </View>
 
