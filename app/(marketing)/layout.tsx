@@ -5,8 +5,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className="bg-white text-gray-900">
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Logo height={24} />
+        <div className="max-w-6xl mx-auto px-6 h-24 flex items-center justify-between">
+          <Logo height={120} />
           <nav className="hidden md:flex items-center gap-7 text-sm text-gray-500">
             <Link href="/demo" className="hover:text-gray-900 transition-colors">See demo</Link>
             <Link href="/pricing" className="hover:text-gray-900 transition-colors">Pricing</Link>

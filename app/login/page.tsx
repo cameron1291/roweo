@@ -44,7 +44,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <p className="text-sm text-red-500 bg-red-950 p-3 rounded-md">{error}</p>
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>
             )}
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
@@ -74,9 +74,9 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
             </Button>
-            <p className="text-sm text-center text-zinc-500">
+            <p className="text-sm text-center text-gray-500">
               No account?{' '}
-              <Link href="/signup" className="text-zinc-100 underline underline-offset-2">
+              <Link href="/signup" className="text-[#1B2A4A] underline underline-offset-2">
                 Sign up free
               </Link>
             </p>

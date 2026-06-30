@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function SpamPage() {
   return (
-    <article className="prose prose-invert prose-zinc max-w-none">
+    <article className="prose prose-zinc max-w-none">
       <h1>Anti-Spam Policy</h1>
       <p className="text-gray-500">Last updated: 1 July 2026</p>
 

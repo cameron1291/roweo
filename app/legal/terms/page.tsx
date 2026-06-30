@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <article className="prose prose-invert prose-zinc max-w-none">
+    <article className="prose prose-zinc max-w-none">
       <h1>Terms of Service</h1>
       <p className="text-gray-500">Last updated: 1 July 2026</p>
 
@@ -19,7 +19,7 @@ export default function TermsPage() {
 
       <h2>3. Subscription and billing</h2>
       <ul>
-        <li>Subscriptions are billed monthly at AUD $299 + GST.</li>
+        <li>Subscriptions are billed monthly. Current plan pricing is listed at roweo.com.au/pricing.</li>
         <li>Payment is processed by Stripe. You authorise Stripe to charge your card each billing cycle.</li>
         <li>Subscriptions are month-to-month with no lock-in contract.</li>
         <li>Cancellation takes effect at the end of the current paid period. No refunds are issued for the current period.</li>

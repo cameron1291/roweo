@@ -122,13 +122,13 @@ export default async function DemoSlugPage({ params }: { params: Promise<{ slug:
               <p className="text-sm font-semibold mb-4">To the property owner, {recentDAs[0]?.suburb ?? suburbs[0] ?? 'Sydney'}</p>
               <p className="text-sm leading-relaxed mb-3">Dear Homeowner,</p>
               <p className="text-sm leading-relaxed mb-3">
-                We noticed that a development application has recently been lodged for your property — congratulations on planning your project! We specialise in {businessType} work throughout {suburbDisplay} and would love to discuss how we can help.
+                We&apos;re a {businessType} working in {suburbDisplay}. We saw that you&apos;ve lodged a DA at council and wanted to reach out before you start getting quotes.
               </p>
               <p className="text-sm leading-relaxed mb-3">
-                Our team has delivered successful projects across {suburbDisplay}. We pride ourselves on quality workmanship, transparent pricing, and keeping to schedule.
+                We know the area well and have done a number of projects nearby. Happy to come out, have a look at your plans, and give you a straight quote — no pressure.
               </p>
               <p className="text-sm leading-relaxed mb-6">
-                Scan the QR code below to visit our profile page and get in touch for a no-obligation quote.
+                Scan the QR code below to see our profile and get in touch. We usually get back to people the same day.
               </p>
               <div className="flex gap-6 items-start border-t pt-5">
                 <div className="w-16 h-16 bg-zinc-200 rounded flex items-center justify-center text-xs text-zinc-500">[QR code]</div>
@@ -188,8 +188,8 @@ export default async function DemoSlugPage({ params }: { params: Promise<{ slug:
 
           {/* CTA */}
           <section className="text-center space-y-4 pb-8">
-            <h2 className="text-2xl font-semibold text-white">Ready to get started?</h2>
-            <p className="text-zinc-400">$299/month. No lock-in. Cancel any time. First letter posted within 48 hours of setup.</p>
+            <h2 className="text-2xl font-semibold text-white">Ready to give it a go?</h2>
+            <p className="text-zinc-400">From $149/month. No lock-in. Cancel any time. First letter posted within 2 business days of setup.</p>
             <div className="flex gap-4 justify-center mt-6">
               <Link
                 href="/signup"

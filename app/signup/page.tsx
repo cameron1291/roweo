@@ -49,7 +49,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <p className="text-sm text-red-500 bg-red-950 p-3 rounded-md">{error}</p>
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>
             )}
             <div className="space-y-1.5">
               <Label htmlFor="name">Full name</Label>
@@ -91,17 +91,17 @@ export default function SignupPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account…' : 'Create account'}
             </Button>
-            <p className="text-sm text-center text-zinc-500">
+            <p className="text-sm text-center text-gray-500">
               Already have an account?{' '}
-              <Link href="/login" className="text-zinc-100 underline underline-offset-2">
+              <Link href="/login" className="text-[#1B2A4A] underline underline-offset-2">
                 Sign in
               </Link>
             </p>
-            <p className="text-xs text-center text-zinc-600">
+            <p className="text-xs text-center text-gray-400">
               By signing up you agree to our{' '}
-              <Link href="/legal/terms" className="underline">Terms</Link>{' '}
+              <Link href="/legal/terms" className="underline text-gray-500">Terms</Link>{' '}
               and{' '}
-              <Link href="/legal/privacy" className="underline">Privacy Policy</Link>.
+              <Link href="/legal/privacy" className="underline text-gray-500">Privacy Policy</Link>.
             </p>
           </CardFooter>
         </form>

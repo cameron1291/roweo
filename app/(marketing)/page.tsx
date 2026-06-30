@@ -67,7 +67,7 @@ export default async function HomePage() {
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-6 text-center">
           <div>
             <p className="text-3xl font-bold text-[#1B2A4A]">From $149</p>
-            <p className="text-sm text-gray-500 mt-1">per month, flat rate</p>
+            <p className="text-sm text-gray-500 mt-1">per month, no contracts</p>
           </div>
           <div>
             <p className="text-3xl font-bold text-[#1B2A4A]">2 days</p>
@@ -158,35 +158,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Vs Buildscout teaser */}
+      {/* Why Roweo */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <div className="bg-[#1B2A4A] rounded-2xl p-10 text-white">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-            <div className="flex-1">
-              <h2 className="text-xl font-bold mb-4">Built for Australian builders, not adapted from the UK</h2>
-              <ul className="space-y-2.5 text-sm text-blue-200">
-                {[
-                  'Flat monthly fee — not $2 per letter like Buildscout',
-                  'Dedicated QR landing page with quote form (not just your website URL)',
-                  'ROI tracking — see the jobs and revenue your letters generated',
-                  'No demo call to see pricing or sign up',
-                  'Australian councils, Australian suburb names, Australian compliance',
-                ].map(point => (
-                  <li key={point} className="flex items-start gap-2.5">
-                    <span className="text-blue-400 shrink-0 mt-0.5">✓</span>
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="shrink-0">
-              <Link
-                href="/vs-buildscout"
-                className="inline-block text-sm border border-white/30 hover:border-white/60 text-white px-5 py-2.5 rounded-lg transition-colors"
-              >
-                Full comparison →
-              </Link>
-            </div>
+          <h2 className="text-xl font-bold mb-6">Why builders use Roweo</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              "Letters go to the homeowner's door, not their spam folder",
+              'QR tracking shows you exactly who scanned and when',
+              'Quote requests land directly in your inbox — name, number, project',
+              'Cancel any time, no lock-in, no salesperson to call',
+              'Set up in 20 minutes — approve your letter template and you\'re live',
+              'ROI dashboard tracks the enquiries and jobs won from your letters',
+            ].map(point => (
+              <div key={point} className="flex items-start gap-2.5 text-sm text-blue-100">
+                <span className="text-blue-400 shrink-0 mt-0.5 font-bold">✓</span>
+                <span>{point}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
