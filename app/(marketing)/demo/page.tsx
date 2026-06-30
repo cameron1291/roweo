@@ -155,42 +155,51 @@ export default async function DemoPage() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-8 items-start">
+            {/* Letter mock — clean professional layout, no coloured header */}
             <div className="flex-1 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden max-w-md" style={{ fontFamily: 'Georgia, serif' }}>
-              <div className="bg-[#1B2A4A] px-7 py-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-bold text-lg">Bayside Building Co.</p>
-                  <p className="text-blue-200 text-xs">Residential Builder · Lic. No. 123456C</p>
+              <div className="px-7 pt-6 pb-3 border-b border-gray-100">
+                <div className="flex items-start justify-between mb-0">
+                  {/* Logo placeholder — left aligned */}
+                  <div className="w-28 h-9 bg-[#1B2A4A] rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold tracking-wide">BAYSIDE BUILDING</span>
+                  </div>
+                  {/* Sender details — right aligned */}
+                  <div className="text-right">
+                    <p className="text-xs font-semibold text-gray-800">Bayside Building Co.</p>
+                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">0412 345 678<br />baysidebuilding.com.au<br />Lic. No. 123456C</p>
+                    <p className="text-xs text-gray-400 mt-1">30 June 2026</p>
+                  </div>
                 </div>
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-sm">BB</div>
               </div>
-              <div className="px-7 py-6">
-                <p className="text-xs text-gray-400 mb-4">27 June 2026</p>
-                <p className="text-sm font-semibold text-gray-800 mb-5">To the property owner,<br />Parramatta NSW 2150</p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-3">Dear Homeowner,</p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-3">
-                  We are a residential builder working in the Parramatta area. We saw that you have lodged a DA with council for a second storey addition and wanted to reach out before you start getting quotes.
-                </p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-3">
-                  We have completed a number of similar projects in Parramatta and the surrounding suburbs and know the council requirements well. Happy to come out, have a look at your plans, and give you a straight quote — no obligation.
-                </p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-5">
-                  Scan the code below to see our profile and get in touch. We usually respond the same day.
-                </p>
-                <div className="border-t border-gray-100 pt-5 flex items-center gap-5">
-                  <div className="w-20 h-20 bg-gray-900 rounded-lg flex-shrink-0 grid grid-cols-5 grid-rows-5 gap-px p-1.5">
+              <div className="px-7 py-5">
+                {/* Recipient address — window envelope position */}
+                <div className="mb-4">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">The Property Owner</p>
+                  <p className="text-sm font-semibold text-gray-900 leading-snug">14 Paget Street<br />Parramatta NSW 2150</p>
+                </div>
+                {/* RE line */}
+                <div className="border-l-2 border-[#1B2A4A] pl-3 py-1 mb-4">
+                  <p className="text-xs font-semibold text-gray-800">RE: Second Storey Extension — 14 Paget Street, Parramatta</p>
+                  <p className="text-xs text-gray-400 mt-0.5">DA No. 2025/0412 · Lodged 18 June 2026</p>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">Dear Homeowner,</p>
+                <p className="text-sm leading-relaxed text-gray-700 mb-3">We noticed your application for a second storey addition has been lodged with City of Parramatta Council and wanted to reach out before you start calling builders.</p>
+                <p className="text-sm leading-relaxed text-gray-700 mb-3">We have completed fifteen similar additions in Parramatta over the past three years and know the council requirements well. We are happy to come out, review your plans, and give you a straight quote — no charge, no pressure.</p>
+                <p className="text-sm leading-relaxed text-gray-700 mb-4">Scan the QR code below to see our profile and get in touch. We usually respond the same day.</p>
+                <p className="text-sm text-gray-700 mb-4">Kind regards,<br /><span className="font-semibold text-gray-900">Bayside Building Co.</span><br /><span className="text-xs text-gray-400">0412 345 678 · baysidebuilding.com.au · Lic. No. 123456C</span></p>
+                {/* QR block — clean border, no fill */}
+                <div className="border border-gray-200 rounded p-3 flex items-center gap-4">
+                  <div className="w-16 h-16 flex-shrink-0 grid grid-cols-5 grid-rows-5 gap-px p-1 bg-white border border-gray-200 rounded">
                     {Array.from({ length: 25 }).map((_, i) => (
-                      <div key={i} className={`rounded-sm ${[0,1,2,5,10,12,14,15,20,22,23,24,6,7,8,17,18,19].includes(i) ? 'bg-white' : 'bg-gray-900'}`} />
+                      <div key={i} className={`rounded-sm ${[0,1,2,5,10,12,14,15,20,22,23,24,6,7,8,17,18,19].includes(i) ? 'bg-gray-900' : 'bg-white'}`} />
                     ))}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">Scan to get a quote</p>
-                    <p className="text-xs text-gray-400 mt-1">roweo.com.au/scan/bb-abc123</p>
-                    <p className="text-xs text-gray-400">0412 345 678</p>
+                    <p className="text-xs font-semibold text-gray-800">Scan to view our profile &amp; request a quote</p>
+                    <p className="text-xs text-gray-400 mt-1">roweo.com.au/scan/bayside-abc123</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-300 mt-4 pt-4 border-t border-gray-100 leading-relaxed">
-                  This letter was sent independently by the builder named above and is not affiliated with any council or government authority.
-                </p>
+                <p className="text-xs text-gray-300 mt-4 pt-3 border-t border-gray-100 leading-relaxed">This letter was sent independently by the builder named above and is not affiliated with any council or government authority. ABN 31 683 026 924</p>
               </div>
             </div>
 

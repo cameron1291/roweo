@@ -1,14 +1,20 @@
 """
-Scrape builder prospects from Google Maps (headed mode, Mac only).
+Scrape builder prospects from Google Maps — headed mode, Mac only.
+
+Clicks into each listing to pull company name, address, phone AND website
+from the Google Maps detail panel. Gives complete prospect data in one pass.
+
+Use targeted search queries to surface mid-size companies, not sole traders:
+  "building company Sydney NSW"
+  "renovation company Sydney NSW"
+  "home extension company Sydney"
+  "residential builder Parramatta"
 
 Usage:
-  python google_maps_scraper.py --query "renovation builder Sydney NSW" --max 40
-  python google_maps_scraper.py --query "extension builder Melbourne VIC" --max 40 --headless
+  python google_maps_scraper.py --query "building company Sydney NSW" --max 30
+  python google_maps_scraper.py --query "home extension company Melbourne VIC" --max 30
 
-Runs headed by default so Google Maps treats it as a real browser.
-Only run this manually on the Mac when doing active outreach — not automated.
-
-Inserts rows into builder_prospects with status='scraped'.
+Only run manually on the Mac during active outreach — not automated.
 """
 
 import asyncio
@@ -26,106 +32,123 @@ from shared.supabase_client import _get_client
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
 
+# Reject obvious 1-man trades and non-builders
 SKIP_WORDS = {
-    'search', 'find', 'compare', 'get quotes', 'request', 'read more',
-    'see all', 'load more', 'view', 'menu', 'open', 'closed',
-    'directions', 'call', 'website', 'share', 'save', 'photos',
-    'reviews', 'nearby', 'sponsored', 'ad ·',
+    'plumb', 'electr', 'tile', 'tiling', 'paint', 'landscap', 'clean',
+    'scaff', 'labour', 'labor', 'hire', 'supply', 'material',
+    'search', 'find', 'compare', 'request', 'sponsored', 'ad ·',
+    'open now', 'closed', 'directions',
 }
 
 
 def _looks_like_company(name: str) -> bool:
-    name_lower = name.lower().strip()
-    if len(name) < 4 or len(name) > 80:
+    if not name or len(name) < 4 or len(name) > 80:
         return False
-    if any(w in name_lower for w in SKIP_WORDS):
-        return False
-    if name_lower.startswith(('http', 'www.', '+61', '0', '(')):
-        return False
-    return True
+    n = name.lower()
+    return not any(w in n for w in SKIP_WORDS)
 
 
-async def scrape_google_maps(query: str, max_results: int = 40, headless: bool = False) -> list[dict]:
+async def scrape_google_maps(query: str, max_results: int = 30) -> list[dict]:
     from playwright.async_api import async_playwright
 
     results = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=headless,
+            headless=False,
             args=['--disable-blink-features=AutomationControlled'],
         )
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            viewport={'width': 1400, 'height': 900},
+            viewport={'width': 1440, 'height': 900},
         )
         page = await context.new_page()
         await page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         search_url = f"https://www.google.com.au/maps/search/{query.replace(' ', '+')}/"
-        log.info(f"Opening Google Maps: {search_url}")
+        log.info(f"Opening: {search_url}")
         await page.goto(search_url, wait_until="networkidle", timeout=45000)
         await page.wait_for_timeout(3000)
 
-        # Scroll the results panel to load more
+        # Scroll the results panel to load listings
         feed = page.locator('[role="feed"]')
-        for i in range(max(3, max_results // 8)):
+        for _ in range(max(4, max_results // 6)):
             await feed.evaluate("el => el.scrollBy(0, 2500)")
-            await page.wait_for_timeout(1200)
+            await page.wait_for_timeout(1000)
 
-        # Strategy 1: Look for result cards with the feed
-        seen = set()
+        # Collect all result cards
         cards = await page.locator('[role="feed"] [jsaction]').all()
-        log.info(f"Found {len(cards)} feed cards")
+        log.info(f"Found {len(cards)} cards — clicking each for full details")
+
+        seen_names: set[str] = set()
 
         for card in cards:
+            if len(results) >= max_results:
+                break
+
             try:
-                # Business name is usually in the first heading-like element
-                name_el = card.locator('div[class*="fontHeadline"], h2, h3, [aria-label]').first
-                name = ''
+                # Get name from card before clicking
+                name_el = card.locator('div[class*="fontHeadline"], div[class*="qBF1Pd"]').first
+                card_name = ''
                 if await name_el.count() > 0:
-                    name = await name_el.inner_text()
-                    if not name:
-                        name = await name_el.get_attribute('aria-label') or ''
+                    card_name = (await name_el.inner_text()).strip().split('\n')[0].strip()
 
-                name = name.strip().split('\n')[0].strip()
-                if not _looks_like_company(name) or name in seen:
+                if not _looks_like_company(card_name):
                     continue
-                seen.add(name)
+                if card_name in seen_names:
+                    continue
 
-                # Try to get address from card
-                addr_el = card.locator('div[class*="fontBody"] span').first
-                address = ''
-                if await addr_el.count() > 0:
-                    address = await addr_el.inner_text()
+                # Click to open detail panel
+                await card.click()
+                await page.wait_for_timeout(2000)
 
+                # Extract from right-hand detail panel
+                name = card_name
+
+                # Phone — multiple selector strategies
+                phone = None
+                for sel in ['[data-item-id="phone"] [aria-label]', 'button[data-item-id*="phone"]', '[aria-label^="Phone"]', '[data-tooltip*="0"]']:
+                    el = page.locator(sel).first
+                    if await el.count() > 0:
+                        phone = await el.get_attribute('aria-label') or await el.get_attribute('data-tooltip') or await el.inner_text()
+                        phone = phone.replace('Phone:', '').replace('phone:', '').strip() if phone else None
+                        if phone and re.search(r'\d{8,}', phone.replace(' ', '')):
+                            break
+                        phone = None
+
+                # Website
+                website = None
+                for sel in ['a[data-item-id="authority"]', 'a[aria-label*="website" i]', 'a[href^="http"][data-item-id]']:
+                    el = page.locator(sel).first
+                    if await el.count() > 0:
+                        website = await el.get_attribute('href')
+                        if website and 'google.com' not in website and 'maps' not in website:
+                            break
+                        website = None
+
+                # Address
+                address = None
+                for sel in ['[data-item-id*="address"] [aria-label]', 'button[data-item-id*="address"]', '[aria-label*="Address"]']:
+                    el = page.locator(sel).first
+                    if await el.count() > 0:
+                        address = await el.get_attribute('aria-label') or await el.inner_text()
+                        address = address.replace('Address:', '').replace('address:', '').strip() if address else None
+                        if address:
+                            break
+                        address = None
+
+                seen_names.add(name)
                 results.append({
                     'company_name': name,
-                    'postal_address': address.strip() or None,
+                    'postal_address': address,
+                    'phone': phone,
+                    'website': website,
                     'source': 'google_maps',
                 })
-                log.info(f"  + {name}")
+                log.info(f"  ✓ {name} | {phone or '—'} | {website or '—'}")
 
-                if len(results) >= max_results:
-                    break
             except Exception as e:
                 log.debug(f"Card error: {e}")
-
-        # Strategy 2: If we didn't get enough, try aria-labels on the cards
-        if len(results) < 5:
-            log.info("Trying aria-label strategy...")
-            labeled = await page.locator('[role="feed"] [aria-label]').all()
-            for el in labeled:
-                try:
-                    label = (await el.get_attribute('aria-label') or '').strip()
-                    if _looks_like_company(label) and label not in seen:
-                        seen.add(label)
-                        results.append({'company_name': label, 'source': 'google_maps'})
-                        log.info(f"  + {label} (aria)")
-                        if len(results) >= max_results:
-                            break
-                except Exception:
-                    pass
 
         await browser.close()
 
@@ -156,7 +179,7 @@ def insert_prospects(prospects: list[dict]) -> dict:
         demo_slug = demo_slug + '-' + os.urandom(3).hex()
 
         supabase.table('builder_prospects').insert({
-            **p,
+            **{k: v for k, v in p.items() if v is not None},
             'status': 'scraped',
             'demo_slug': demo_slug,
             'qr_token': str(uuid.uuid4()),
@@ -164,14 +187,13 @@ def insert_prospects(prospects: list[dict]) -> dict:
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }).execute()
         inserted += 1
-        log.info(f"  Saved: {p['company_name']}")
 
     return {'inserted': inserted, 'skipped': skipped}
 
 
-async def run(query: str, max_results: int = 40, headless: bool = False):
-    log.info(f"Google Maps scraper: '{query}' max={max_results} headless={headless}")
-    prospects = await scrape_google_maps(query, max_results, headless)
+async def run(query: str, max_results: int = 30):
+    log.info(f"Google Maps: '{query}' max={max_results}")
+    prospects = await scrape_google_maps(query, max_results)
     log.info(f"Scraped {len(prospects)} prospects")
     result = insert_prospects(prospects)
     log.info(f"Done — inserted: {result['inserted']}, skipped: {result['skipped']}")
@@ -179,9 +201,8 @@ async def run(query: str, max_results: int = 40, headless: bool = False):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--query', default='renovation builder Sydney NSW', help='Google Maps search query')
-    parser.add_argument('--max', type=int, default=40, help='Max results')
-    parser.add_argument('--headless', action='store_true', help='Run headless (default: headed/visible)')
+    parser = argparse.ArgumentParser(description='Scrape builder prospects from Google Maps (headed)')
+    parser.add_argument('--query', default='building company Sydney NSW', help='Google Maps search query')
+    parser.add_argument('--max', type=int, default=30, help='Max results')
     args = parser.parse_args()
-    asyncio.run(run(args.query, args.max, args.headless))
+    asyncio.run(run(args.query, args.max))
