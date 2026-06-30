@@ -1,0 +1,129 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getStripe } from '@/lib/stripe'
+import { createServiceClient } from '@/lib/supabase-server'
+import { sendEmail, ADMIN_EMAIL } from '@/lib/resend'
+import { sendAccountSuspendedEmail, sendAccountReactivatedEmail, sendPaymentFailedEmail } from '@/lib/emails'
+import Stripe from 'stripe'
+
+export async function POST(req: NextRequest) {
+  const body = await req.text()
+  const sig = req.headers.get('stripe-signature')!
+
+  let event: Stripe.Event
+  try {
+    event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+  } catch {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  const supabase = createServiceClient()
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const userId = session.metadata?.userId
+        if (!userId || session.mode !== 'subscription') break
+
+        const { data: existingProfile } = await supabase.from('profiles').select('subscription_status, email').eq('id', userId).single()
+        const isReactivation = existingProfile?.subscription_status === 'cancelled'
+
+        await supabase.from('profiles').update({
+          stripe_customer_id: session.customer as string,
+          stripe_subscription_id: session.subscription as string,
+          subscription_status: 'active',
+          plan: 'builder',
+        }).eq('id', userId)
+
+        await supabase.from('subscription_events').insert({
+          user_id: userId,
+          event_type: isReactivation ? 'reactivated' : 'subscribed',
+          amount_aud: 29900,
+          stripe_event_id: event.id,
+        })
+
+        if (isReactivation && existingProfile?.email) {
+          sendAccountReactivatedEmail(existingProfile.email).catch(() => {})
+        }
+        break
+      }
+
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object as Stripe.Subscription
+        const userId = sub.metadata?.userId
+        if (!userId) break
+
+        await supabase.from('profiles').update({
+          subscription_status: 'cancelled',
+          plan: 'inactive',
+        }).eq('stripe_subscription_id', sub.id)
+
+        await supabase.from('subscription_events').insert({
+          user_id: userId,
+          event_type: 'cancelled',
+          stripe_event_id: event.id,
+        })
+
+        const { data: p } = await supabase.from('profiles').select('email').eq('id', userId).single()
+        if (p?.email) sendAccountSuspendedEmail(p.email).catch(() => {})
+        break
+      }
+
+      case 'customer.subscription.updated': {
+        const sub = event.data.object as Stripe.Subscription
+        const status = sub.status === 'active' ? 'active'
+          : sub.status === 'past_due' ? 'past_due'
+          : 'inactive'
+
+        await supabase.from('profiles').update({
+          subscription_status: status,
+        }).eq('stripe_subscription_id', sub.id)
+        break
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const customerId = invoice.customer as string
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, email, full_name')
+          .eq('stripe_customer_id', customerId)
+          .single()
+
+        if (!profile) break
+
+        await supabase.from('profiles').update({
+          subscription_status: 'past_due',
+        }).eq('id', profile.id)
+
+        await supabase.from('subscription_events').insert({
+          user_id: profile.id,
+          event_type: 'payment_failed',
+          stripe_event_id: event.id,
+        })
+
+        // Notify builder
+        if (profile.email) sendPaymentFailedEmail(profile.email).catch(() => {})
+        // Notify admin
+        await sendEmail({
+          to: ADMIN_EMAIL,
+          subject: `Payment failed — ${profile.full_name ?? profile.email}`,
+          html: `<p>Payment failed for ${profile.full_name ?? 'builder'} (${profile.email}). Check Stripe for retry status.</p>`,
+        })
+        break
+      }
+    }
+  } catch (err) {
+    console.error('Stripe webhook handler error', err)
+    // Log but still return 200 so Stripe doesn't retry
+    try {
+      await supabase.from('subscription_events').insert({
+        event_type: 'webhook_error',
+        stripe_event_id: event.id,
+      })
+    } catch { /* best-effort logging */ }
+  }
+
+  return NextResponse.json({ received: true })
+}

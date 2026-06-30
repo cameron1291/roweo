@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <!-- R lettermark -->
+  <!-- Left vertical bar -->
+  <rect x="0" y="0" width="14" height="80" rx="0" fill="#1B2A4A"/>
+  <!-- Top horizontal + bowl -->
+  <!-- Top bar -->
+  <rect x="0" y="0" width="42" height="14" fill="#1B2A4A"/>
+  <!-- Bowl right vertical -->
+  <rect x="44" y="0" width="14" height="40" rx="7" fill="#1B2A4A"/>
+  <!-- Bottom of bowl -->
+  <rect x="0" y="28" width="58" height="14" fill="#1B2A4A"/>
+  <!-- Leg diagonal (top-right to bottom-right) -->
+  <polygon points="28,42 58,42 80,80 50,80" fill="#1B2A4A"/>
+  <!-- Blue triangle accent (notch cutout area) -->
+  <polygon points="14,42 28,42 14,80" fill="#3B6FDB"/>
+
+  <!-- Wordmark "Roweo" -->
+  <text x="100" y="58" font-family="'Geist', 'Inter', system-ui, sans-serif" font-size="44" font-weight="600" fill="#1B2A4A" letter-spacing="-1">Roweo</text>
+</svg>
