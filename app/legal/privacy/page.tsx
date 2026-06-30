@@ -9,7 +9,7 @@ export default function PrivacyPage() {
   return (
     <article className="prose prose-invert prose-zinc max-w-none">
       <h1>Privacy Policy</h1>
-      <p className="text-zinc-400">Last updated: 1 July 2026</p>
+      <p className="text-gray-500">Last updated: 1 July 2026</p>
 
       <h2>1. About this policy</h2>
       <p>Roweo ("we", "us", "our") is committed to protecting your privacy in accordance with the Australian Privacy Act 1988 (Cth). This policy explains how we handle personal information collected through roweo.com.au and related services.</p>

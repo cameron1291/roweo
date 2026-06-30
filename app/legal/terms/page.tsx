@@ -9,7 +9,7 @@ export default function TermsPage() {
   return (
     <article className="prose prose-invert prose-zinc max-w-none">
       <h1>Terms of Service</h1>
-      <p className="text-zinc-400">Last updated: 1 July 2026</p>
+      <p className="text-gray-500">Last updated: 1 July 2026</p>
 
       <h2>1. Acceptance</h2>
       <p>By creating a Roweo account you agree to these Terms. If you do not agree, do not use the service.</p>

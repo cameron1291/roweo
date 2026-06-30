@@ -44,6 +44,11 @@ CREATE TABLE builder_profiles (
   letter_template_approved    BOOLEAN NOT NULL DEFAULT false,
   auto_send                   BOOLEAN NOT NULL DEFAULT false,
 
+  -- Letter quota (set by plan; topped up by letter packs)
+  letters_remaining           INTEGER NOT NULL DEFAULT 0,
+  letters_used_this_month     INTEGER NOT NULL DEFAULT 0,
+  quota_reset_at              TIMESTAMPTZ,
+
   -- Stats
   letters_sent_count          INTEGER NOT NULL DEFAULT 0,
   letters_scanned_count       INTEGER NOT NULL DEFAULT 0,

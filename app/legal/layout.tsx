@@ -3,11 +3,11 @@ import { Logo } from '@/components/logo'
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <header className="border-b border-white/5">
+    <div className="min-h-screen bg-white text-gray-900">
+      <header className="border-b border-gray-100">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
           <Logo height={20} />
-          <Link href="/" className="text-sm text-zinc-500 hover:text-white transition-colors">← Back to Roweo</Link>
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Back to Roweo</Link>
         </div>
       </header>
       <div className="max-w-3xl mx-auto px-6 py-16">

@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 
 export const metadata: Metadata = {
-  title: 'Live Demo — See Real NSW Development Applications',
-  description: 'See real development applications from the NSW Planning Portal. This is live data — not a screenshot. Start matching builders to homeowners today.',
+  title: 'Live Demo — Real NSW Development Applications',
+  description: 'See real development applications from the NSW Planning Portal. These are actual homeowners planning renovations and builds in Greater Sydney right now.',
 }
 
 export const dynamic = 'force-dynamic'
@@ -15,12 +15,12 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const TYPE_BADGE: Record<string, string> = {
-  extension: 'bg-blue-500/20 text-blue-400',
-  renovation: 'bg-purple-500/20 text-purple-400',
-  new_dwelling: 'bg-green-500/20 text-green-400',
-  granny_flat: 'bg-yellow-500/20 text-yellow-400',
-  pool: 'bg-cyan-500/20 text-cyan-400',
-  other: 'bg-zinc-500/20 text-zinc-400',
+  extension: 'bg-blue-100 text-blue-700',
+  renovation: 'bg-purple-100 text-purple-700',
+  new_dwelling: 'bg-green-100 text-green-700',
+  granny_flat: 'bg-yellow-100 text-yellow-700',
+  pool: 'bg-cyan-100 text-cyan-700',
+  other: 'bg-gray-100 text-gray-600',
 }
 
 export default async function DemoPage() {
@@ -43,111 +43,98 @@ export default async function DemoPage() {
 
   const das = dasResult.data ?? []
   const totalCount = countResult.count ?? 0
-
   const hasDas = das.length > 0
   const showCount = totalCount > 0 ? totalCount : 247
 
-  return (
-    <div className="bg-zinc-950 text-white">
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-full px-3 py-1 mb-6">
-            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
-            {hasDas ? 'Live data — not a mockup' : 'Real data from NSW Planning Portal'}
-          </div>
-          <h1 className="text-3xl font-semibold mb-4">
-            {showCount} DAs lodged in Greater Sydney in the last 30 days
-          </h1>
-          <p className="text-zinc-400 max-w-xl mx-auto">
-            These are real homeowners who have lodged development applications at their local council.
-            Roweo matches you to the ones in your service area and posts a professional letter on your behalf.
-          </p>
-        </div>
+  const mockDas = [
+    { suburb: 'Parramatta', project_type: 'extension', description: 'Alterations and additions to existing dwelling — proposed second storey addition', lodged_date: '2026-06-28', estimated_value_aud: 180000 },
+    { suburb: 'Blacktown', project_type: 'new_dwelling', description: 'Construction of a new single storey dwelling', lodged_date: '2026-06-27', estimated_value_aud: 420000 },
+    { suburb: 'Penrith', project_type: 'granny_flat', description: 'Construction of a secondary dwelling (granny flat) to rear of existing property', lodged_date: '2026-06-26', estimated_value_aud: 95000 },
+    { suburb: 'Liverpool', project_type: 'renovation', description: 'Internal alterations to existing dwelling including kitchen and bathrooms', lodged_date: '2026-06-25', estimated_value_aud: 85000 },
+    { suburb: 'Campbelltown', project_type: 'pool', description: 'Construction of an in-ground swimming pool and associated landscaping', lodged_date: '2026-06-24', estimated_value_aud: 55000 },
+  ]
 
-        {/* Dashboard mock header */}
-        <div className="bg-white/3 border border-white/5 rounded-xl overflow-hidden mb-4">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-white/5">
-            <div className="flex gap-4">
-              {['All', 'New', 'Saved', 'Letter Approved'].map(tab => (
-                <button key={tab} className={`text-sm px-3 py-1.5 rounded-md ${tab === 'All' ? 'bg-white/10 text-white' : 'text-zinc-500'}`}>
+  const displayDas = hasDas ? das : mockDas
+
+  return (
+    <>
+      <section className="max-w-4xl mx-auto px-6 py-16 text-center">
+        <div className="inline-flex items-center gap-2 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-4 py-1.5 mb-6">
+          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          {hasDas ? 'Live data — not a mockup' : 'Sample data — live data loads once the scraper runs'}
+        </div>
+        <h1 className="text-3xl font-bold text-[#1B2A4A] mb-4">
+          {showCount} DAs lodged in Greater Sydney in the last 30 days
+        </h1>
+        <p className="text-gray-500 max-w-xl mx-auto">
+          These are real homeowners who have lodged development applications at their local council.
+          Roweo matches the right ones to your service area and posts a letter on your behalf.
+        </p>
+      </section>
+
+      <section className="max-w-4xl mx-auto px-6 pb-8">
+        {/* Dashboard chrome */}
+        <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+          {/* Tab bar — styled to look like the real app */}
+          <div className="flex items-center justify-between px-5 py-3 bg-[#0f172a] border-b border-white/10">
+            <div className="flex gap-1">
+              {['All leads', 'New', 'Saved', 'Letter sent'].map(tab => (
+                <button key={tab} className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${tab === 'All leads' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}>
                   {tab}
                 </button>
               ))}
             </div>
-            <span className="text-xs text-zinc-600">{das.length} leads shown</span>
+            <span className="text-xs text-zinc-500">{displayDas.length} leads shown</span>
           </div>
 
-          <div className="divide-y divide-white/5">
-            {hasDas ? das.map((da, i) => (
-              <div key={i} className="px-5 py-4 flex items-start justify-between gap-4">
+          <div className="divide-y divide-gray-100 bg-white">
+            {displayDas.map((da, i) => (
+              <div key={i} className="px-5 py-4 flex items-start justify-between gap-4 hover:bg-gray-50 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
                       {TYPE_LABELS[da.project_type] ?? da.project_type}
                     </span>
-                    <span className="text-xs text-zinc-600">{da.council}</span>
+                    {'council' in da && da.council && (
+                      <span className="text-xs text-gray-400">{da.council}</span>
+                    )}
                   </div>
-                  <p className="font-medium">{da.suburb}, {da.state}</p>
-                  <p className="text-sm text-zinc-400 mt-0.5 truncate">{da.description}</p>
+                  <p className="font-semibold text-gray-900">{da.suburb}, {'state' in da ? da.state : 'NSW'}</p>
+                  <p className="text-sm text-gray-500 mt-0.5 truncate">{da.description}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm text-zinc-400">{da.lodged_date}</p>
+                  <p className="text-sm text-gray-400">{da.lodged_date}</p>
                   {da.estimated_value_aud && (
-                    <p className="text-xs text-zinc-600">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
+                    <p className="text-xs text-gray-400">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
                   )}
                   <div className="mt-2 flex gap-1.5 justify-end">
-                    <button className="text-xs border border-white/10 px-2 py-1 rounded text-zinc-400">Save</button>
-                    <button className="text-xs bg-blue-600/80 text-white px-2 py-1 rounded">Send letter</button>
+                    <button className="text-xs border border-gray-200 text-gray-500 px-2.5 py-1 rounded-md">Save</button>
+                    <button className="text-xs bg-[#1B2A4A] text-white px-2.5 py-1 rounded-md">Send letter</button>
                   </div>
                 </div>
               </div>
-            )) : (
-              // Fallback mockup rows when DB is empty (before first scraper run)
-              [
-                { suburb: 'Parramatta', project_type: 'extension', description: 'Alterations and additions to existing dwelling — proposed second storey addition', lodged_date: '2026-06-28', estimated_value_aud: 180000 },
-                { suburb: 'Blacktown', project_type: 'new_dwelling', description: 'Construction of a new single storey dwelling', lodged_date: '2026-06-27', estimated_value_aud: 420000 },
-                { suburb: 'Penrith', project_type: 'granny_flat', description: 'Construction of a secondary dwelling (granny flat) to rear of existing property', lodged_date: '2026-06-26', estimated_value_aud: 95000 },
-                { suburb: 'Liverpool', project_type: 'renovation', description: 'Internal alterations to existing dwelling including kitchen and bathrooms', lodged_date: '2026-06-25', estimated_value_aud: 85000 },
-                { suburb: 'Campbelltown', project_type: 'pool', description: 'Construction of an in-ground swimming pool and associated landscaping', lodged_date: '2026-06-24', estimated_value_aud: 55000 },
-              ].map((da, i) => (
-                <div key={i} className="px-5 py-4 flex items-start justify-between gap-4 opacity-75">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
-                        {TYPE_LABELS[da.project_type]}
-                      </span>
-                    </div>
-                    <p className="font-medium">{da.suburb}, NSW</p>
-                    <p className="text-sm text-zinc-400 mt-0.5">{da.description}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm text-zinc-400">{da.lodged_date}</p>
-                    <p className="text-xs text-zinc-600">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
-                    <div className="mt-2 flex gap-1.5 justify-end">
-                      <button className="text-xs border border-white/10 px-2 py-1 rounded text-zinc-400">Save</button>
-                      <button className="text-xs bg-blue-600/80 text-white px-2 py-1 rounded">Send letter</button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+            ))}
           </div>
         </div>
 
         {!hasDas && (
-          <p className="text-xs text-zinc-600 text-right mb-8">Sample data shown above — live data populates once the scraper runs.</p>
+          <p className="text-xs text-gray-400 text-right mt-2">Sample data — live data appears after first scraper run.</p>
         )}
+      </section>
 
-        <div className="text-center mt-12">
-          <p className="text-zinc-400 mb-6">This is what your dashboard looks like. Every DA above is a potential job.</p>
+      <section className="bg-gray-50 border-t border-gray-100 py-16 text-center mt-8">
+        <div className="max-w-xl mx-auto px-6">
+          <h2 className="text-2xl font-bold text-[#1B2A4A] mb-3">Every DA above is a potential job</h2>
+          <p className="text-gray-500 mb-8">Set up your service area and letter template in 20 minutes. We handle the rest.</p>
           <Link
             href="/signup"
-            className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-4 rounded-lg transition-colors"
+            className="inline-block bg-[#1B2A4A] hover:bg-[#243660] text-white font-semibold px-9 py-4 rounded-lg transition-colors"
           >
-            Get matched to leads in your suburb — $299/month
+            Get started from $149/month
           </Link>
+          <p className="text-sm text-gray-400 mt-4">No contracts. Cancel any time.</p>
         </div>
-      </div>
-    </div>
+      </section>
+    </>
   )
 }

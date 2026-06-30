@@ -10,7 +10,7 @@ export default function SpamPage() {
   return (
     <article className="prose prose-invert prose-zinc max-w-none">
       <h1>Anti-Spam Policy</h1>
-      <p className="text-zinc-400">Last updated: 1 July 2026</p>
+      <p className="text-gray-500">Last updated: 1 July 2026</p>
 
       <h2>1. Our commitment</h2>
       <p>Roweo complies with the <strong>Australian Spam Act 2003 (Cth)</strong> and the <strong>Do Not Call Register Act 2006 (Cth)</strong>. We take anti-spam obligations seriously and expect all users of our platform to do the same.</p>
@@ -47,7 +47,7 @@ export default function SpamPage() {
       <p><a href="mailto:hello@roweo.com.au">hello@roweo.com.au</a> — Roweo, Sydney NSW, Australia.</p>
 
       <hr />
-      <p className="text-sm text-zinc-500">See also: <Link href="/legal/privacy">Privacy Policy</Link> · <Link href="/legal/terms">Terms of Service</Link></p>
+      <p className="text-sm text-gray-400">See also: <Link href="/legal/privacy">Privacy Policy</Link> · <Link href="/legal/terms">Terms of Service</Link></p>
     </article>
   )
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStripe } from '@/lib/stripe'
+import { getStripe, getPlanByPriceId, LETTER_PACKS } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase-server'
 import { sendEmail, ADMIN_EMAIL } from '@/lib/resend'
 import { sendAccountSuspendedEmail, sendAccountReactivatedEmail, sendPaymentFailedEmail } from '@/lib/emails'
@@ -23,22 +23,44 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.userId
-        if (!userId || session.mode !== 'subscription') break
+        if (!userId) break
 
+        // Handle letter pack purchase (one-time payment)
+        if (session.mode === 'payment') {
+          const pack = session.metadata?.pack as keyof typeof LETTER_PACKS | undefined
+          if (!pack || !LETTER_PACKS[pack]) break
+          const qty = LETTER_PACKS[pack].quantity
+          // Add letters to builder's remaining quota
+          const { data: bp } = await supabase.from('builder_profiles').select('letters_remaining').eq('user_id', userId).single()
+          await supabase.from('builder_profiles').update({
+            letters_remaining: (bp?.letters_remaining ?? 0) + qty,
+          }).eq('user_id', userId)
+          break
+        }
+
+        if (session.mode !== 'subscription') break
+
+        const planKey = session.metadata?.plan ?? 'professional'
         const { data: existingProfile } = await supabase.from('profiles').select('subscription_status, email').eq('id', userId).single()
         const isReactivation = existingProfile?.subscription_status === 'cancelled'
+
+        // Retrieve subscription to get the price ID and amount
+        const stripeSubscription = await getStripe().subscriptions.retrieve(session.subscription as string)
+        const priceId = stripeSubscription.items.data[0]?.price.id
+        const resolvedPlan = getPlanByPriceId(priceId) ?? planKey
+        const amountAud = stripeSubscription.items.data[0]?.price.unit_amount ?? 0
 
         await supabase.from('profiles').update({
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: session.subscription as string,
           subscription_status: 'active',
-          plan: 'builder',
+          plan: resolvedPlan,
         }).eq('id', userId)
 
         await supabase.from('subscription_events').insert({
           user_id: userId,
           event_type: isReactivation ? 'reactivated' : 'subscribed',
-          amount_aud: 29900,
+          amount_aud: amountAud,
           stripe_event_id: event.id,
         })
 
