@@ -325,7 +325,9 @@ const PROJECT_LABEL: Record<string, string> = {
   other: 'Development Application',
 }
 
-export function LetterDocument(props: LetterProps) {
+// LetterPage renders just the <Page> — used by generateBatchPdf to compose
+// multiple letters inside a single <Document> without nesting Documents.
+export function LetterPage(props: LetterProps) {
   const {
     companyName,
     logoUrl,
@@ -378,8 +380,7 @@ export function LetterDocument(props: LetterProps) {
       ]
 
   return (
-    <Document>
-      <Page size="A4" style={S.page}>
+    <Page size="A4" style={S.page}>
 
         {/* ── HEADER ── */}
         <View style={S.header}>
@@ -524,7 +525,15 @@ export function LetterDocument(props: LetterProps) {
           <Text style={S.footerBrand}>Roweo</Text>
         </View>
 
-      </Page>
+    </Page>
+  )
+}
+
+// LetterDocument wraps LetterPage in a Document for single-letter previews.
+export function LetterDocument(props: LetterProps) {
+  return (
+    <Document>
+      <LetterPage {...props} />
     </Document>
   )
 }

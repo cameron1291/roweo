@@ -24,7 +24,7 @@ export async function generateLetterPdf(props: LetterProps): Promise<Buffer> {
 // Generate a multi-page batch PDF from multiple letters
 export async function generateBatchPdf(letters: LetterProps[]): Promise<Buffer> {
   const { Document } = await import('@react-pdf/renderer')
-  const { LetterDocument: LD } = await import('./letter-document')
+  const { LetterPage } = await import('./letter-document')
 
   // Pre-generate all QR codes in parallel
   const withQr = await Promise.all(
@@ -43,12 +43,12 @@ export async function generateBatchPdf(letters: LetterProps[]): Promise<Buffer> 
     })
   )
 
-  // Render all pages in one Document
+  // One Document, one LetterPage per letter — avoids nested <Document> elements
   const element = createElement(
     Document,
     {},
     ...withQr.map((props, i) =>
-      createElement(LD, { ...props, key: i })
+      createElement(LetterPage, { ...props, key: i })
     )
   ) as ReactElement<DocumentProps>
 
