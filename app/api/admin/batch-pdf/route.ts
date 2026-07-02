@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const { data: matches } = await serviceClient
     .from('lead_matches')
     .select(`
-      id, qr_token, letter_body_text, letter_greeting,
+      id, qr_token, letter_body_text,
       development_applications(suburb, state, postcode, street_address, da_number, description, project_type, lodged_date),
       builder_profiles(company_name, logo_url, brand_color, phone, website, license_number, tagline, letter_greeting, letter_sign_off, letter_compliance_disclaimer)
     `)

@@ -177,6 +177,8 @@ async def _run_async(days_back: int = 1) -> dict:
                     classification = classify_project_type(parsed["description"])
                     parsed["project_type"] = classification["project_type"]
                     parsed["project_type_confidence"] = classification["confidence"]
+                    if parsed.get("estimated_value_aud") is None:
+                        parsed["estimated_value_aud"] = classification.get("estimated_value_aud")
                 else:
                     parsed["project_type"] = "other"
                     parsed["project_type_confidence"] = 0.0

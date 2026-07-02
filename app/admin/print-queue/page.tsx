@@ -30,7 +30,7 @@ export default async function PrintQueuePage() {
   return (
     <div className="p-8">
       <h1 className="text-xl font-semibold mb-2">Print Queue</h1>
-      <p className="text-sm text-zinc-500 mb-8">
+      <p className="text-sm text-gray-400 mb-8">
         Generate batch PDFs for approved letters. Download, print, stuff envelopes, mark as posted.
       </p>
       <PrintQueueClient batches={batches} />

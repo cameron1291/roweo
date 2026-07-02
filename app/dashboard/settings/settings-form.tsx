@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,12 +21,14 @@ const PROJECT_TYPES = [
   { id: 'commercial', label: 'Light Commercial' },
 ]
 
-export function SettingsForm({ builder }: { builder: BuilderProfile }) {
+export function SettingsForm({ builder, plan }: { builder: BuilderProfile; plan: 'starter' | 'professional' | 'growth' }) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [suburbQuery, setSuburbQuery] = useState('')
   const [suburbResults, setSuburbResults] = useState<{ name: string; state: string }[]>([])
+  const [radiusKm, setRadiusKm] = useState<number>((builder as any).service_radius_km ?? 25)
+  const [radiusSaving, setRadiusSaving] = useState(false)
 
   const [form, setForm] = useState({
     company_name: builder.company_name,
@@ -79,11 +82,22 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
     }
   }
 
+  async function handleRadiusSave(km: number) {
+    setRadiusSaving(true)
+    await fetch('/api/builder/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service_radius_km: km }),
+    })
+    setRadiusSaving(false)
+    router.refresh()
+  }
+
   return (
     <div className="space-y-6">
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-5 space-y-4">
-          <h2 className="text-sm font-medium text-white">Company details</h2>
+          <h2 className="text-sm font-medium text-gray-900">Company details</h2>
           <div className="space-y-1.5">
             <Label>Company name</Label>
             <Input value={form.company_name} onChange={e => set('company_name', e.target.value)} />
@@ -105,9 +119,9 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-5 space-y-4">
-          <h2 className="text-sm font-medium text-white">Service suburbs</h2>
+          <h2 className="text-sm font-medium text-gray-900">Service suburbs</h2>
           <div className="flex flex-wrap gap-2">
             {form.service_suburbs.map(s => (
               <Badge key={s} variant="secondary" className="pl-2 pr-1 py-1 gap-1">
@@ -119,12 +133,12 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
             ))}
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input className="pl-9" placeholder="Add a suburb…" value={suburbQuery} onChange={e => searchSuburbs(e.target.value)} />
             {suburbResults.length > 0 && (
-              <div className="absolute z-10 top-full mt-1 w-full bg-zinc-800 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+              <div className="absolute z-10 top-full mt-1 w-full bg-gray-100 border border-gray-200 rounded-lg shadow-xl overflow-hidden">
                 {suburbResults.map(s => (
-                  <button key={s.name} onClick={() => addSuburb(`${s.name}, ${s.state}`)} className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-white">
+                  <button key={s.name} onClick={() => addSuburb(`${s.name}, ${s.state}`)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-200 text-gray-900">
                     {s.name}, {s.state}
                   </button>
                 ))}
@@ -134,9 +148,9 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-5 space-y-4">
-          <h2 className="text-sm font-medium text-white">Project types</h2>
+          <h2 className="text-sm font-medium text-gray-900">Project types</h2>
           <div className="grid grid-cols-2 gap-2">
             {PROJECT_TYPES.map(pt => {
               const selected = form.project_types.includes(pt.id as any)
@@ -145,7 +159,7 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
                   key={pt.id}
                   onClick={() => toggleProjectType(pt.id)}
                   className={`text-left p-2.5 rounded-lg border text-sm flex items-center justify-between transition-colors ${
-                    selected ? 'border-blue-500 bg-blue-500/10 text-blue-300' : 'border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                    selected ? 'border-blue-500 bg-blue-500/10 text-blue-300' : 'border-zinc-700 text-gray-700 hover:border-zinc-500'
                   }`}
                 >
                   {pt.label}
@@ -157,9 +171,9 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-5 space-y-4">
-          <h2 className="text-sm font-medium text-white">Value range</h2>
+          <h2 className="text-sm font-medium text-gray-900">Value range</h2>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Minimum (AUD)</Label>
@@ -173,11 +187,11 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-5 flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium text-white">Auto-send letters</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <h2 className="text-sm font-medium text-gray-900">Auto-send letters</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
               {builder.letter_template_approved
                 ? 'Automatically queue letters for matched leads without manual approval each time.'
                 : 'Approve your letter template first to enable auto-send.'}
@@ -190,6 +204,63 @@ export function SettingsForm({ builder }: { builder: BuilderProfile }) {
           />
         </CardContent>
       </Card>
+
+      {/* Service radius — plan-gated */}
+      {plan !== 'starter' && (
+        <Card className="border-gray-200">
+          <CardContent className="p-5 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-sm font-medium text-gray-900">Service radius</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {plan === 'growth'
+                    ? 'Your map shows DAs within this distance of your business.'
+                    : 'Fixed at 25km on the Professional plan.'}
+                </p>
+              </div>
+              <span className="text-sm font-semibold text-gray-900">{radiusKm}km</span>
+            </div>
+            {plan === 'growth' ? (
+              <div className="space-y-1">
+                <input
+                  type="range"
+                  min={10}
+                  max={50}
+                  step={5}
+                  value={radiusKm}
+                  onChange={e => setRadiusKm(Number(e.target.value))}
+                  onMouseUp={() => handleRadiusSave(radiusKm)}
+                  onTouchEnd={() => handleRadiusSave(radiusKm)}
+                  className="w-full accent-blue-500"
+                />
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>10km</span>
+                  <span>25km default</span>
+                  <span>50km max</span>
+                </div>
+                {radiusSaving && <p className="text-xs text-gray-500">Saving…</p>}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <input
+                  type="range"
+                  min={10}
+                  max={50}
+                  step={5}
+                  value={25}
+                  disabled
+                  className="w-full accent-blue-500 opacity-50 cursor-not-allowed"
+                />
+                <p className="text-xs text-gray-500">
+                  <Link href="/dashboard/settings/billing" className="text-blue-400 hover:text-blue-300">
+                    Upgrade to Growth ($249/mo)
+                  </Link>{' '}to expand your radius up to 50km and access more leads.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} disabled={saving}>

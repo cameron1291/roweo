@@ -47,9 +47,9 @@ export function LettersList({ letters }: { letters: Letter[] }) {
 
   if (letters.length === 0) {
     return (
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-8 text-center">
-          <p className="text-sm text-zinc-500">No letters approved yet. Approve a letter from the Leads tab to see it here.</p>
+          <p className="text-sm text-gray-400">No letters approved yet. Approve a letter from the Leads tab to see it here.</p>
         </CardContent>
       </Card>
     )
@@ -61,11 +61,11 @@ export function LettersList({ letters }: { letters: Letter[] }) {
         {letters.map(letter => {
           const da = letter.development_applications
           return (
-            <Card key={letter.id} className="border-white/10">
+            <Card key={letter.id} className="border-gray-200">
               <CardContent className="p-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-medium text-white">{da.suburb}, {da.state}</p>
+                    <p className="text-sm font-medium text-gray-900">{da.suburb}, {da.state}</p>
                     <Badge variant="secondary" className="text-xs">{formatProjectType(da.project_type)}</Badge>
                     {letter.scan_count > 0 && (
                       <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30 gap-1">
@@ -73,7 +73,7 @@ export function LettersList({ letters }: { letters: Letter[] }) {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-zinc-500 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     {STATUS_LABEL[letter.status] ?? letter.status}
                     {letter.letter_approved_at && ` · approved ${new Date(letter.letter_approved_at).toLocaleDateString('en-AU')}`}
                   </p>
@@ -121,6 +121,7 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
     setSaving(false)
     setRevenue('')
     setDescription('')
+    setOutcomeType('enquiry')
     onSaved()
   }
 
@@ -158,7 +159,7 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={() => { setOutcomeType('enquiry'); setRevenue(''); setDescription(''); onClose() }}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-1" /> Save outcome</>}
           </Button>

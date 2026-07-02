@@ -45,7 +45,8 @@ export async function GET(req: NextRequest) {
       letterGreeting: builder.letter_greeting,
       letterSignOff: builder.letter_sign_off,
       complianceDisclaimer: builder.letter_compliance_disclaimer,
-      letterBodyText: PREVIEW_BODY,
+      letterBodyText: builder.letter_body_template ?? PREVIEW_BODY,
+      letterNote: builder.letter_note ?? undefined,
       qrUrl: `${process.env.NEXT_PUBLIC_APP_URL}/demo`,
       ...PREVIEW_DA,
     }
@@ -83,7 +84,8 @@ export async function GET(req: NextRequest) {
       daProjectType: da.project_type,
       daLodgedDate: da.lodged_date,
       daDaNumber: da.da_number,
-      letterBodyText: match.letter_body_text ?? PREVIEW_BODY,
+      letterBodyText: match.letter_body_text ?? builder.letter_body_template ?? PREVIEW_BODY,
+      letterNote: builder.letter_note ?? undefined,
       qrUrl: `${process.env.NEXT_PUBLIC_APP_URL}/scan/${match.qr_token}`,
     }
   } else {

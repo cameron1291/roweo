@@ -97,8 +97,13 @@ export async function POST(req: NextRequest) {
           : sub.status === 'past_due' ? 'past_due'
           : 'inactive'
 
+        // Resolve plan from price ID so upgrades/downgrades via Stripe portal update the DB
+        const priceId = sub.items.data[0]?.price.id
+        const resolvedPlan = priceId ? getPlanByPriceId(priceId) : null
+
         await supabase.from('profiles').update({
           subscription_status: status,
+          ...(resolvedPlan ? { plan: resolvedPlan } : {}),
         }).eq('stripe_subscription_id', sub.id)
         break
       }

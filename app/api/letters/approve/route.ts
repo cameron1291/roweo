@@ -24,6 +24,16 @@ export async function POST(req: NextRequest) {
   const parsed = schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !['active', 'past_due'].includes(profile.subscription_status ?? '')) {
+    return NextResponse.json({ error: 'An active subscription is required to send letters' }, { status: 403 })
+  }
+
   const { data: match } = await supabase
     .from('lead_matches')
     .select(`*, development_applications(*), builder_profiles(*)`)

@@ -95,15 +95,18 @@ export default async function AnalyticsPage() {
       return { month, mrr: runningMrr, new_customers: data.new, churned: data.churned }
     })
 
-  // Process acquisition funnel
+  // Process acquisition funnel — each channel has its own "sent" event type
   const events = prospectFunnel.data ?? []
   const channels = ['physical_letter', 'interactive_email', 'cold_email']
   const funnelData = channels.map(channel => {
     const ch = events.filter(e => e.channel === channel)
     const uniq = (type: string) => new Set(ch.filter(e => e.event_type === type).map(e => e.prospect_id)).size
+    const sentCount = channel === 'physical_letter' ? uniq('letter_generated')
+      : channel === 'interactive_email' ? uniq('interactive_email_sent')
+      : uniq('cold_email_sent')
     return {
       channel: channel.replace(/_/g, ' '),
-      sent: uniq('interactive_email_sent') + uniq('cold_email_sent') + uniq('letter_generated'),
+      sent: sentCount,
       opened: uniq('email_opened'),
       viewed: uniq('page_viewed'),
       clicked: uniq('cta_clicked'),

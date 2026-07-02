@@ -19,8 +19,8 @@ export default async function LettersPage() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-xl font-semibold text-white mb-1">Letters</h1>
-      <p className="text-sm text-zinc-400 mb-6">Track delivery status and log outcomes from your sent letters.</p>
+      <h1 className="text-xl font-semibold text-gray-900 mb-1">Letters</h1>
+      <p className="text-sm text-gray-500 mb-6">Track delivery status and log outcomes from your sent letters.</p>
       <LettersList letters={(letters as any) ?? []} />
     </div>
   )

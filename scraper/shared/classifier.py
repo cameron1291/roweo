@@ -20,9 +20,10 @@ PROJECT_TYPES = [
 
 CLASSIFY_SYSTEM = """
 You classify Australian development application (DA) descriptions into a fixed
-project type for a residential/extension builder lead-matching system.
+project type for a residential/extension builder lead-matching system, and
+estimate the construction cost in AUD.
 
-Valid types:
+Valid project types:
 - new_dwelling: new house, dwelling, knockdown rebuild
 - extension: addition, second storey, extension to existing dwelling
 - renovation: internal alterations, renovation, refurbishment
@@ -33,10 +34,21 @@ Valid types:
 - commercial: retail, office, industrial, large multi-unit (5+ dwellings)
 - other: anything that doesn't clearly fit, or description too vague
 
-Return ONLY valid JSON, nothing else:
-{"project_type": "extension", "confidence": 0.0}
+Typical Australian construction costs (AUD) for estimated_value_aud:
+- new_dwelling: 400000–900000 (depends on size/area)
+- extension: 80000–350000
+- renovation: 30000–150000
+- granny_flat: 100000–200000
+- pool: 30000–80000
+- demolition: 15000–50000
+- duplex: 600000–1400000
+- commercial: 200000–2000000
+- other: null
 
-confidence is 0.0-1.0 reflecting how clearly the description matches the type.
+Return ONLY valid JSON, nothing else:
+{"project_type": "extension", "confidence": 0.0, "estimated_value_aud": 150000}
+
+confidence is 0.0-1.0. estimated_value_aud is an integer (no decimals) or null if other/unclear.
 """
 
 
@@ -65,10 +77,16 @@ def classify_project_type(description: str) -> dict:
         project_type = result.get("project_type", "other")
         if project_type not in PROJECT_TYPES:
             project_type = "other"
+        value_raw = result.get("estimated_value_aud")
+        try:
+            estimated_value = int(value_raw) if value_raw is not None else None
+        except (ValueError, TypeError):
+            estimated_value = None
         return {
             "project_type": project_type,
             "confidence": float(result.get("confidence", 0.0)),
+            "estimated_value_aud": estimated_value,
         }
     except Exception as e:
         print(f"[Classifier] Error: {e}")
-        return {"project_type": "other", "confidence": 0.0}
+        return {"project_type": "other", "confidence": 0.0, "estimated_value_aud": None}

@@ -202,28 +202,28 @@ export default function OnboardingPage() {
           const active = n === step
           return (
             <div key={n} className="flex items-center gap-1">
-              <div className={`flex items-center gap-1.5 ${active ? 'text-white' : done ? 'text-blue-400' : 'text-zinc-600'}`}>
+              <div className={`flex items-center gap-1.5 ${active ? 'text-gray-900' : done ? 'text-blue-600' : 'text-gray-400'}`}>
                 {done
                   ? <CheckCircle className="w-4 h-4 text-blue-400" />
-                  : <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center border ${active ? 'border-blue-500 bg-blue-500 text-white' : 'border-zinc-700 text-zinc-600'}`}>{n}</span>
+                  : <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center border ${active ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-400'}`}>{n}</span>
                 }
                 <span className={`text-xs hidden sm:inline ${active ? 'font-medium' : ''}`}>{label}</span>
               </div>
-              {i < STEPS.length - 1 && <div className="w-6 h-px bg-zinc-800 mx-1" />}
+              {i < STEPS.length - 1 && <div className="w-6 h-px bg-gray-200 mx-1" />}
             </div>
           )
         })}
       </div>
 
-      <Card className="border-white/10 bg-zinc-900">
+      <Card className="border-gray-200 bg-white shadow-sm">
         <CardContent className="p-6 space-y-5">
 
           {/* ── Step 1: Company details ── */}
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-white">Your company</h2>
-                <p className="text-sm text-zinc-400 mt-1">This information appears on every letter you send to homeowners.</p>
+                <h2 className="text-lg font-semibold text-gray-900">Your company</h2>
+                <p className="text-sm text-gray-500 mt-1">This information appears on every letter you send to homeowners.</p>
               </div>
               <div className="space-y-1.5">
                 <Label>Company name *</Label>
@@ -250,8 +250,8 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-white">Where do you work?</h2>
-                <p className="text-sm text-zinc-400 mt-1">Add the suburbs you service. We'll match DAs in these areas to your account.</p>
+                <h2 className="text-lg font-semibold text-gray-900">Where do you work?</h2>
+                <p className="text-sm text-gray-500 mt-1">Add the suburbs you service. We'll match DAs in these areas to your account.</p>
               </div>
 
               {/* Selected suburbs */}
@@ -270,7 +270,7 @@ export default function OnboardingPage() {
 
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <Input
                   className="pl-9"
                   placeholder="Search suburbs… e.g. Parramatta"
@@ -278,9 +278,9 @@ export default function OnboardingPage() {
                   onChange={e => searchSuburbs(e.target.value)}
                 />
                 {(suburbResults.length > 0 || searchingSuburbs) && (
-                  <div className="absolute z-10 top-full mt-1 w-full bg-zinc-800 border border-white/10 rounded-lg shadow-xl overflow-hidden">
+                  <div className="absolute z-10 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
                     {searchingSuburbs && (
-                      <div className="px-3 py-2 text-sm text-zinc-500 flex items-center gap-2">
+                      <div className="px-3 py-2 text-sm text-gray-500 flex items-center gap-2">
                         <Loader2 className="w-3 h-3 animate-spin" /> Searching…
                       </div>
                     )}
@@ -288,10 +288,10 @@ export default function OnboardingPage() {
                       <button
                         key={`${s.name}-${s.state}`}
                         onClick={() => addSuburb(s.name, s.state)}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 flex justify-between items-center"
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 flex justify-between items-center"
                       >
-                        <span className="text-white">{s.name}</span>
-                        <span className="text-zinc-500 text-xs">{s.state} {s.postcode}</span>
+                        <span className="text-gray-900">{s.name}</span>
+                        <span className="text-gray-500 text-xs">{s.state} {s.postcode}</span>
                       </button>
                     ))}
                   </div>
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
 
               {/* State checkboxes */}
               <div>
-                <p className="text-xs text-zinc-500 mb-2">Or filter by state to receive all DAs from that state:</p>
+                <p className="text-xs text-gray-500 mb-2">Or filter by state to receive all DAs from that state:</p>
                 <div className="flex flex-wrap gap-2">
                   {STATES.map(s => (
                     <button
@@ -312,7 +312,7 @@ export default function OnboardingPage() {
                       className={`px-3 py-1 rounded-full text-xs border transition-colors ${
                         form.service_states.includes(s)
                           ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                          : 'border-zinc-700 text-zinc-500 hover:border-zinc-500'
+                          : 'border-gray-300 text-gray-500 hover:border-gray-400'
                       }`}
                     >
                       {s}
@@ -327,8 +327,8 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-white">What work do you take on?</h2>
-                <p className="text-sm text-zinc-400 mt-1">We only match DAs that match your selected project types.</p>
+                <h2 className="text-lg font-semibold text-gray-900">What work do you take on?</h2>
+                <p className="text-sm text-gray-500 mt-1">We only match DAs that match your selected project types.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {PROJECT_TYPES.map(pt => {
@@ -340,16 +340,16 @@ export default function OnboardingPage() {
                       className={`text-left p-3 rounded-lg border transition-all ${
                         selected
                           ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-zinc-700 hover:border-zinc-500'
+                          : 'border-gray-200 hover:border-gray-400'
                       }`}
                     >
                       <div className="flex items-start justify-between">
-                        <span className={`text-sm font-medium ${selected ? 'text-blue-300' : 'text-white'}`}>
+                        <span className={`text-sm font-medium ${selected ? "text-blue-700" : "text-gray-900"}`}>
                           {pt.label}
                         </span>
                         {selected && <CheckCircle className="w-4 h-4 text-blue-400 shrink-0" />}
                       </div>
-                      <p className="text-xs text-zinc-500 mt-0.5">{pt.desc}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{pt.desc}</p>
                     </button>
                   )
                 })}
@@ -361,13 +361,13 @@ export default function OnboardingPage() {
           {step === 4 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-white">Minimum project value</h2>
-                <p className="text-sm text-zinc-400 mt-1">We'll filter out DAs below your threshold. Many DAs don't include a stated value — those are always included.</p>
+                <h2 className="text-lg font-semibold text-gray-900">Minimum project value</h2>
+                <p className="text-sm text-gray-500 mt-1">We'll filter out DAs below your threshold. Many DAs don't include a stated value — those are always included.</p>
               </div>
               <div className="space-y-2">
                 <Label>Minimum estimated value (AUD)</Label>
                 <div className="flex items-center gap-3">
-                  <span className="text-zinc-400 text-sm">$</span>
+                  <span className="text-gray-400 text-sm">$</span>
                   <Input
                     type="number"
                     min={0}
@@ -378,12 +378,12 @@ export default function OnboardingPage() {
                     className="max-w-xs"
                   />
                 </div>
-                <p className="text-xs text-zinc-500">Common: $0 (all DAs), $50,000 (exclude minor works), $150,000 (medium projects+)</p>
+                <p className="text-xs text-gray-500">Common: $0 (all DAs), $50,000 (exclude minor works), $150,000 (medium projects+)</p>
               </div>
               <div className="space-y-2">
                 <Label>Maximum estimated value (optional)</Label>
                 <div className="flex items-center gap-3">
-                  <span className="text-zinc-400 text-sm">$</span>
+                  <span className="text-gray-400 text-sm">$</span>
                   <Input
                     type="number"
                     min={0}
@@ -394,7 +394,7 @@ export default function OnboardingPage() {
                     className="max-w-xs"
                   />
                 </div>
-                <p className="text-xs text-zinc-500">Leave blank to receive all DAs above your minimum.</p>
+                <p className="text-xs text-gray-500">Leave blank to receive all DAs above your minimum.</p>
               </div>
             </div>
           )}
@@ -403,8 +403,8 @@ export default function OnboardingPage() {
           {step === 5 && (
             <div className="space-y-4">
               <div>
-                <h2 className="text-lg font-semibold text-white">Customise your letter</h2>
-                <p className="text-sm text-zinc-400 mt-1">Your letter is the homeowner's first impression of your business.</p>
+                <h2 className="text-lg font-semibold text-gray-900">Customise your letter</h2>
+                <p className="text-sm text-gray-500 mt-1">Your letter is the homeowner's first impression of your business.</p>
               </div>
 
               {/* Logo upload */}
@@ -412,19 +412,19 @@ export default function OnboardingPage() {
                 <Label>Company logo</Label>
                 <div
                   onClick={() => logoInputRef.current?.click()}
-                  className="border border-dashed border-zinc-700 rounded-lg p-6 text-center cursor-pointer hover:border-zinc-500 transition-colors"
+                  className="border border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
                 >
                   {form.logo_url
                     ? (
                       <div className="flex items-center justify-center gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={form.logo_url} alt="Logo" className="h-10 object-contain" />
-                        <span className="text-sm text-zinc-400">Click to replace</span>
+                        <span className="text-sm text-gray-400">Click to replace</span>
                       </div>
                     )
                     : logoUploading
-                      ? <div className="flex items-center justify-center gap-2 text-zinc-400"><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</div>
-                      : <div className="text-zinc-500"><Upload className="w-5 h-5 mx-auto mb-1" /><p className="text-sm">Click to upload logo (PNG or JPG, max 2MB)</p></div>
+                      ? <div className="flex items-center justify-center gap-2 text-gray-400"><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</div>
+                      : <div className="text-gray-500"><Upload className="w-5 h-5 mx-auto mb-1" /><p className="text-sm">Click to upload logo (PNG or JPG, max 2MB)</p></div>
                   }
                 </div>
                 <input
@@ -445,7 +445,7 @@ export default function OnboardingPage() {
                       type="color"
                       value={form.brand_color}
                       onChange={e => set('brand_color', e.target.value)}
-                      className="w-10 h-9 rounded border border-zinc-700 cursor-pointer bg-transparent"
+                      className="w-10 h-9 rounded border border-gray-200 cursor-pointer bg-transparent"
                     />
                     <Input
                       value={form.brand_color}
@@ -493,8 +493,8 @@ export default function OnboardingPage() {
           {step === 6 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-white">Preview your homeowner letter</h2>
-                <p className="text-sm text-zinc-400 mt-1">
+                <h2 className="text-lg font-semibold text-gray-900">Preview your homeowner letter</h2>
+                <p className="text-sm text-gray-500 mt-1">
                   This is what homeowners in your area will receive after lodging a development application.
                   Review it and approve before we begin sending.
                 </p>
@@ -508,9 +508,9 @@ export default function OnboardingPage() {
                 <Eye className="w-4 h-4" /> Open letter preview (PDF)
               </Button>
 
-              <div className="rounded-lg border border-zinc-700 p-4 space-y-2 bg-zinc-800/50">
-                <p className="text-sm text-zinc-300 font-medium">Your letter includes:</p>
-                <ul className="text-sm text-zinc-400 space-y-1 list-disc list-inside">
+              <div className="rounded-lg border border-gray-200 p-4 space-y-2 bg-gray-50">
+                <p className="text-sm text-gray-700 font-medium">Your letter includes:</p>
+                <ul className="text-sm text-gray-500 space-y-1 list-disc list-inside">
                   <li>Your company logo and brand colours</li>
                   <li>The homeowner's property address and DA reference</li>
                   <li>A personalised introduction written for the specific project type</li>
@@ -522,7 +522,7 @@ export default function OnboardingPage() {
 
               {templateApproved
                 ? (
-                  <div className="flex items-center gap-2 text-green-400 justify-center">
+                  <div className="flex items-center gap-2 text-green-600 justify-center">
                     <CheckCircle className="w-5 h-5" /> Letter approved! Redirecting to your dashboard…
                   </div>
                 )

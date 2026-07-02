@@ -49,7 +49,7 @@ export function CampaignActions({ campaign }: { campaign: Campaign }) {
 
   return (
     <div className="flex flex-col items-end gap-2">
-      {message && <span className="text-xs text-zinc-400">{message}</span>}
+      {message && <span className="text-xs text-gray-500">{message}</span>}
       <div className="flex gap-2">
         {campaign.status === 'draft' && (
           <button
@@ -74,7 +74,7 @@ export function CampaignActions({ campaign }: { campaign: Campaign }) {
             <button
               onClick={() => updateStatus('completed')}
               disabled={updating}
-              className="px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors disabled:opacity-50"
+              className="px-4 py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
             >
               Mark complete
             </button>

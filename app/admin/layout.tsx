@@ -13,6 +13,9 @@ const NAV = [
   { href: '/admin/prospects', label: 'Prospects' },
   { href: '/admin/campaigns', label: 'Campaigns' },
   { href: '/admin/analytics', label: 'Analytics' },
+  { href: '/admin/feature-flags', label: 'Feature Flags' },
+  { href: '/admin/audit-log', label: 'Audit Log' },
+  { href: '/admin/churn', label: 'Churn Feedback' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -30,28 +33,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/dashboard')
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-white">
-      <aside className="w-56 flex-shrink-0 border-r border-white/5 flex flex-col py-6 px-4">
+    <div className="flex min-h-screen bg-gray-50 text-gray-900">
+      <aside className="w-56 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col py-6 px-4">
         <div className="mb-8 px-2">
-          <Logo height={22} />
-          <span className="text-xs text-zinc-500 mt-1 block">Admin</span>
+          <Logo height={32} />
+          <span className="text-xs text-gray-400 mt-2 block font-medium">Admin panel</span>
         </div>
-        <nav className="flex flex-col gap-1 flex-1">
+        <nav className="flex flex-col gap-0.5 flex-1">
           {NAV.map(n => (
             <Link
               key={n.href}
               href={n.href}
               className={cn(
                 "px-3 py-2 rounded-md text-sm transition-colors",
-                "text-zinc-400 hover:text-white hover:bg-white/5"
+                "text-gray-600 hover:text-gray-900 hover:bg-gray-100 font-medium"
               )}
             >
               {n.label}
             </Link>
           ))}
         </nav>
-        <Link href="/dashboard" className="px-3 py-2 text-xs text-zinc-600 hover:text-zinc-400 transition-colors">
-          ← Back to dashboard
+        <Link href="/dashboard" className="px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          ← Builder dashboard
         </Link>
       </aside>
       <main className="flex-1 overflow-auto">

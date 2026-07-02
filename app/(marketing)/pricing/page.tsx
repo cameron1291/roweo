@@ -4,6 +4,12 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Pricing — DA Leads for Australian Builders from $149/month',
   description: 'Starter from $149/month. Professional with 20 letters/month from $199/month. Growth with expanded search radius from $249/month. No contracts.',
+  openGraph: {
+    title: 'Roweo Pricing — from $149/month, no lock-in',
+    description: 'Simple flat pricing. No per-letter fees, no demo call required, no contracts. Cancel any time.',
+    siteName: 'Roweo',
+    type: 'website',
+  },
 }
 
 const PLANS = [

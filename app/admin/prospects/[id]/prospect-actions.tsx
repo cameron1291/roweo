@@ -25,6 +25,8 @@ export function ProspectActions({ prospect, statuses }: Props) {
   const [generatingLetter, setGeneratingLetter] = useState(false)
   const [sendingInteractive, setSendingInteractive] = useState(false)
   const [sendingCold, setSendingCold] = useState(false)
+  const [sendingFollowup, setSendingFollowup] = useState(false)
+  const [followupTemplate, setFollowupTemplate] = useState('post_letter_no_scan')
   const [phoneOutcome, setPhoneOutcome] = useState(prospect.phone_outcome ?? '')
   const [message, setMessage] = useState<string | null>(null)
 
@@ -59,9 +61,13 @@ export function ProspectActions({ prospect, statuses }: Props) {
     setMessage(null)
     try {
       const res = await fetch(`/api/admin/prospects/${prospect.id}/send-interactive-email`, { method: 'POST' })
-      if (!res.ok) throw new Error()
-      setMessage('Interactive email sent')
-      router.refresh()
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setMessage(err.error ?? 'Email send failed')
+      } else {
+        setMessage('Interactive email sent')
+        router.refresh()
+      }
     } catch { setMessage('Email send failed') }
     setSendingInteractive(false)
   }
@@ -71,11 +77,31 @@ export function ProspectActions({ prospect, statuses }: Props) {
     setMessage(null)
     try {
       const res = await fetch(`/api/admin/prospects/${prospect.id}/send-cold-email`, { method: 'POST' })
-      if (!res.ok) throw new Error()
-      setMessage('Cold email sent')
-      router.refresh()
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setMessage(err.error ?? 'Email send failed')
+      } else {
+        setMessage('Cold email sent')
+        router.refresh()
+      }
     } catch { setMessage('Email send failed') }
     setSendingCold(false)
+  }
+
+  async function sendFollowup() {
+    setSendingFollowup(true)
+    setMessage(null)
+    try {
+      const res = await fetch(`/api/admin/prospects/${prospect.id}/send-followup`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ template: followupTemplate }),
+      })
+      if (!res.ok) throw new Error()
+      setMessage('Follow-up email sent')
+      router.refresh()
+    } catch { setMessage('Follow-up send failed') }
+    setSendingFollowup(false)
   }
 
   async function logPhoneCall() {
@@ -100,29 +126,29 @@ export function ProspectActions({ prospect, statuses }: Props) {
   return (
     <div className="space-y-4">
       {message && (
-        <div className="bg-zinc-800 text-zinc-300 text-xs px-3 py-2 rounded-md">{message}</div>
+        <div className="bg-gray-100 text-gray-700 text-xs px-3 py-2 rounded-md">{message}</div>
       )}
 
       {/* Status */}
-      <div className="bg-zinc-900 rounded-lg p-4 border border-white/5 space-y-3">
-        <h3 className="text-sm font-medium text-zinc-300">Status</h3>
+      <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-3">
+        <h3 className="text-sm font-medium text-gray-700">Status</h3>
         <select
           value={status}
           onChange={e => setStatus(e.target.value)}
-          className="w-full bg-zinc-800 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none"
+          className="w-full bg-gray-100 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none"
         >
           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
       {/* Notes */}
-      <div className="bg-zinc-900 rounded-lg p-4 border border-white/5 space-y-3">
-        <h3 className="text-sm font-medium text-zinc-300">Notes</h3>
+      <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-3">
+        <h3 className="text-sm font-medium text-gray-700">Notes</h3>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
           rows={4}
-          className="w-full bg-zinc-800 border border-white/10 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none resize-none"
+          className="w-full bg-gray-100 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none resize-none"
           placeholder="Add notes..."
         />
         <button
@@ -135,12 +161,12 @@ export function ProspectActions({ prospect, statuses }: Props) {
       </div>
 
       {/* Channel actions */}
-      <div className="bg-zinc-900 rounded-lg p-4 border border-white/5 space-y-2">
-        <h3 className="text-sm font-medium text-zinc-300 mb-3">Actions</h3>
+      <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-2">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">Actions</h3>
         <button
           onClick={generateLetter}
           disabled={generatingLetter}
-          className="w-full py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors disabled:opacity-50"
+          className="w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
         >
           {generatingLetter ? 'Generating...' : prospect.letter_generated_at ? 'Regenerate letter' : 'Generate letter'}
         </button>
@@ -149,7 +175,7 @@ export function ProspectActions({ prospect, statuses }: Props) {
             href={`/api/admin/prospects/${prospect.id}/preview-pdf`}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors text-center"
+            className="block w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors text-center"
           >
             Preview acquisition PDF
           </a>
@@ -157,26 +183,47 @@ export function ProspectActions({ prospect, statuses }: Props) {
         <button
           onClick={sendInteractiveEmail}
           disabled={sendingInteractive}
-          className="w-full py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors disabled:opacity-50"
+          className="w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
         >
           {sendingInteractive ? 'Sending...' : 'Send interactive email'}
         </button>
         <button
           onClick={sendColdEmail}
           disabled={sendingCold}
-          className="w-full py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors disabled:opacity-50"
+          className="w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
         >
           {sendingCold ? 'Sending...' : 'Send cold email'}
         </button>
       </div>
 
+      {/* Follow-up email */}
+      <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-3">
+        <h3 className="text-sm font-medium text-gray-700">Send follow-up</h3>
+        <select
+          value={followupTemplate}
+          onChange={e => setFollowupTemplate(e.target.value)}
+          className="w-full bg-gray-100 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none"
+        >
+          <option value="post_letter_no_scan">After letter — no scan yet</option>
+          <option value="post_view_no_cta">Demo viewed — no CTA click</option>
+          <option value="post_scan_no_trial">Scanned but no trial started</option>
+        </select>
+        <button
+          onClick={sendFollowup}
+          disabled={sendingFollowup}
+          className="w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
+        >
+          {sendingFollowup ? 'Sending...' : 'Send follow-up email'}
+        </button>
+      </div>
+
       {/* Phone log */}
-      <div className="bg-zinc-900 rounded-lg p-4 border border-white/5 space-y-3">
-        <h3 className="text-sm font-medium text-zinc-300">Log phone call</h3>
+      <div className="bg-white rounded-lg p-4 border border-gray-100 space-y-3">
+        <h3 className="text-sm font-medium text-gray-700">Log phone call</h3>
         <select
           value={phoneOutcome}
           onChange={e => setPhoneOutcome(e.target.value)}
-          className="w-full bg-zinc-800 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none"
+          className="w-full bg-gray-100 border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none"
         >
           <option value="">Select outcome...</option>
           <option value="no_answer">No answer</option>
@@ -187,7 +234,7 @@ export function ProspectActions({ prospect, statuses }: Props) {
         <button
           onClick={logPhoneCall}
           disabled={!phoneOutcome}
-          className="w-full py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-zinc-300 transition-colors disabled:opacity-50"
+          className="w-full py-2 rounded-md bg-gray-50 hover:bg-white/10 border border-gray-200 text-sm text-gray-700 transition-colors disabled:opacity-50"
         >
           Log call
         </button>

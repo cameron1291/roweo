@@ -20,7 +20,7 @@ export function PrintQueueClient({ batches }: { batches: [string, MatchRow[]][] 
 
   if (batches.length === 0) {
     return (
-      <div className="text-center py-16 text-zinc-500">
+      <div className="text-center py-16 text-gray-400">
         <Package className="w-10 h-10 mx-auto mb-3 opacity-30" />
         <p>No letters awaiting print.</p>
         <p className="text-sm mt-1">Letters appear here once builders approve them.</p>
@@ -79,13 +79,13 @@ export function PrintQueueClient({ batches }: { batches: [string, MatchRow[]][] 
         const approvedCount = matches.filter(m => m.status === 'letter_approved').length
 
         return (
-          <div key={date} className="bg-white/3 border border-white/5 rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+          <div key={date} className="bg-white/3 border border-gray-100 rounded-lg overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
                 <h3 className="font-medium">
                   {date === 'Unscheduled' ? 'Unscheduled' : new Date(date).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-gray-400 mt-0.5">
                   {matches.length} letter{matches.length !== 1 ? 's' : ''} — {approvedCount} pending print
                 </p>
               </div>
@@ -135,7 +135,7 @@ export function PrintQueueClient({ batches }: { batches: [string, MatchRow[]][] 
                   <div key={m.id} className="flex items-center justify-between px-5 py-3">
                     <div>
                       <p className="text-sm font-medium">{da?.suburb}, {da?.state}</p>
-                      <p className="text-xs text-zinc-500">{da?.street_address} · {da?.project_type?.replace(/_/g, ' ')}</p>
+                      <p className="text-xs text-gray-400">{da?.street_address} · {da?.project_type?.replace(/_/g, ' ')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm">{builder?.company_name}</p>

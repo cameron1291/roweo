@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { data: prospects } = await supabase
     .from('builder_prospects')
     .select('id, company_name, email, service_suburbs, demo_slug, email_unsubscribed')
-    .in('status', ['approved', 'active'])
+    .in('status', ['approved', 'active', 'demo_booked', 'trial_started'])
     .not('email', 'is', null)
 
   const eligible = (prospects ?? []).filter(p => !p.email_unsubscribed && !alreadySentIds.has(p.id))
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       } else {
         const suburbs = (prospect.service_suburbs ?? []).slice(0, 2).join(' and ')
         subject = `Construction leads for ${suburbs || 'your area'}`
-        html = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1F2937;font-size:14px;line-height:1.6"><p>Hi,</p><p>I'm reaching out because we help residential builders${suburbs ? ` in ${suburbs}` : ''} find leads from development applications before competitors do.</p><p>Flat $299/month — no per-lead fees. <a href="${APP_URL}/demo" style="color:#3B6FDB">See how it works</a>.</p><p>— The Roweo team</p><hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0"><p style="font-size:12px;color:#9CA3AF">Roweo · roweo.com.au · <a href="${APP_URL}/api/unsubscribe?id=${prospect.id}" style="color:#9CA3AF">Unsubscribe</a></p></div>`
+        html = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1F2937;font-size:14px;line-height:1.6"><p>Hi,</p><p>I'm reaching out because we help residential builders${suburbs ? ` in ${suburbs}` : ''} find leads from development applications before competitors do.</p><p>From $149/month — no per-lead fees. <a href="${APP_URL}/demo" style="color:#3B6FDB">See how it works</a>.</p><p>— The Roweo team</p><hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0"><p style="font-size:12px;color:#9CA3AF">Roweo · roweo.com.au · <a href="${APP_URL}/api/unsubscribe?id=${prospect.id}" style="color:#9CA3AF">Unsubscribe</a></p></div>`
       }
 
       await sendEmail({ to: prospect.email!, subject, html })
@@ -85,8 +85,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
   }
 
-  // Update prospect count on campaign
-  await supabase.from('acquisition_campaigns').update({ prospect_count: sent }).eq('id', id)
+  // Note: prospect_count tracks prospects added to campaign (managed by add-prospect route), not emails sent
 
   return NextResponse.json({ sent, errors: errors.length, total: eligible.length })
 }

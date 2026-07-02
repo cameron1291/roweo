@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase-server'
+import { buildInteractiveDemoEmail } from '@/lib/emails/interactive-demo-email'
 import { sendEmail } from '@/lib/resend'
 
 async function requireAdmin() {
@@ -12,57 +13,77 @@ async function requireAdmin() {
   return serviceClient
 }
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { id } = await params
   const supabase = await requireAdmin()
   if (!supabase) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { data: prospect } = await supabase.from('builder_prospects').select('*').eq('id', id).single()
+  const { data: prospect } = await supabase
+    .from('builder_prospects')
+    .select('*')
+    .eq('id', id)
+    .single()
+
   if (!prospect) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (!prospect.email) return NextResponse.json({ error: 'No email address for this prospect' }, { status: 400 })
+  if (!prospect.email) return NextResponse.json({ error: 'No email address on file' }, { status: 400 })
   if (prospect.email_unsubscribed) return NextResponse.json({ error: 'Prospect has unsubscribed' }, { status: 400 })
+  if (!prospect.demo_slug) return NextResponse.json({ error: 'No demo page generated yet — create a demo slug first' }, { status: 400 })
 
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
-  const demoUrl = prospect.demo_slug ? `${APP_URL}/demo/${prospect.demo_slug}` : `${APP_URL}/demo`
+  // Guard against resending within 24h
+  const { data: recentSend } = await supabase
+    .from('prospect_events')
+    .select('id')
+    .eq('prospect_id', id)
+    .eq('event_type', 'interactive_email_sent')
+    .gte('occurred_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+    .maybeSingle()
 
-  const html = `
-    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1F2937">
-      <p style="font-size:15px;font-weight:600;color:#111827">A personal demonstration, prepared for ${prospect.company_name}</p>
-      <p style="font-size:14px;color:#374151;line-height:1.6">
-        We've built a private page specifically for ${prospect.company_name} — showing you exactly what your future homeowner customers would receive from your letters, using your service suburbs and project types.
-      </p>
-      <p style="margin:24px 0">
-        <a href="${demoUrl}" style="display:inline-block;background:#3B6FDB;color:#fff;text-decoration:none;padding:14px 28px;border-radius:6px;font-weight:600;font-size:14px">
-          View your personal demo →
-        </a>
-      </p>
-      <p style="font-size:13px;color:#6B7280">Takes 2 minutes to view. No login required.</p>
-      <hr style="border:none;border-top:1px solid #E5E7EB;margin:24px 0">
-      <p style="font-size:12px;color:#9CA3AF">
-        Roweo · Sydney NSW, Australia · roweo.com.au<br>
-        <a href="${APP_URL}/api/unsubscribe?id=${id}" style="color:#9CA3AF">Unsubscribe</a>
-      </p>
-    </div>
-  `
+  if (recentSend) {
+    return NextResponse.json({ error: 'Interactive email already sent in the last 24 hours' }, { status: 409 })
+  }
 
-  await sendEmail({
-    to: prospect.email,
-    subject: `A personal demonstration prepared for ${prospect.company_name}`,
-    html,
+  const suburbs = (prospect.service_suburbs as string[]) ?? []
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
+  const openUrl = `${appUrl}/open/${prospect.demo_slug}`
+  const demoUrl = `${appUrl}/demo/${prospect.demo_slug}`
+  const unsubscribeUrl = `${appUrl}/api/unsubscribe?id=${prospect.id}`
+
+  const { subject, html } = buildInteractiveDemoEmail({
+    companyName: prospect.company_name as string,
+    contactName: (prospect.contact_name as string | null) ?? null,
+    suburbs: suburbs.length > 0 ? suburbs : ['your area'],
+    openUrl,
+    demoUrl,
+    unsubscribeUrl,
+    appUrl,
   })
+
+  const { error: sendError } = await sendEmail({ to: prospect.email as string, subject, html })
+
+  if (sendError) {
+    console.error('Resend error:', sendError)
+    return NextResponse.json({ error: 'Email delivery failed' }, { status: 500 })
+  }
 
   const now = new Date().toISOString()
-  await supabase.from('builder_prospects').update({
-    interactive_email_sent_at: now,
-    updated_at: now,
-  }).eq('id', id)
 
-  await supabase.from('prospect_events').insert({
-    prospect_id: id,
-    event_type: 'interactive_email_sent',
-    channel: 'interactive_email',
-    occurred_at: now,
-  })
+  await Promise.all([
+    supabase.from('prospect_events').insert({
+      prospect_id: id,
+      event_type: 'interactive_email_sent',
+      channel: 'interactive_email',
+      metadata: { email: prospect.email, subject },
+      occurred_at: now,
+    }),
+    supabase.from('builder_prospects').update({
+      interactive_email_sent_at: now,
+      updated_at: now,
+    }).eq('id', id),
+  ])
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ ok: true, sentTo: prospect.email })
 }

@@ -202,6 +202,36 @@ def log_health(check_name: str, status: str, message: str = ""):
 
 # ── Suburbs (DA count rollup for SEO pages) ──────────────────────────────────
 
+def get_suburb_coords(name: str, state: str) -> tuple[float, float] | None:
+    """Return (lat, lng) centroid for a suburb, or None if not yet geocoded."""
+    client = _get_client()
+    try:
+        result = (
+            client.table("suburbs")
+            .select("lat, lng")
+            .eq("name", name)
+            .eq("state", state)
+            .not_.is_("lat", "null")
+            .limit(1)
+            .execute()
+        )
+        if result.data:
+            row = result.data[0]
+            return row["lat"], row["lng"]
+    except Exception as e:
+        print(f"[Supabase] Error fetching suburb coords for {name}, {state}: {e}")
+    return None
+
+
+def set_da_coords(da_id: str, lat: float, lng: float):
+    """Backfill lat/lng on an existing DA row."""
+    client = _get_client()
+    try:
+        client.table("development_applications").update({"lat": lat, "lng": lng}).eq("id", da_id).execute()
+    except Exception as e:
+        print(f"[Supabase] Error setting DA coords: {e}")
+
+
 def increment_suburb_da_count(name: str, state: str, postcode: str = None):
     client = _get_client()
     try:

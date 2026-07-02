@@ -40,18 +40,18 @@ export function AnalyticsDashboard({
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-semibold text-white mb-6">Analytics</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Analytics</h1>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-8 border-b border-white/10">
+      <div className="flex gap-1 mb-8 border-b border-gray-200">
         {TABS.map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
               tab === t
-                ? 'border-blue-500 text-white'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                ? 'border-blue-500 text-blue-700'
+                : 'border-transparent text-gray-400 hover:text-gray-700'
             }`}
           >
             {t}
@@ -64,8 +64,8 @@ export function AnalyticsDashboard({
         <div className="space-y-8">
           {revenueTimeline.length > 0 ? (
             <>
-              <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-                <h2 className="text-sm font-medium text-zinc-400 mb-4">Monthly Recurring Revenue (AUD)</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-100">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">Monthly Recurring Revenue (AUD)</h2>
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={revenueTimeline}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -76,8 +76,8 @@ export function AnalyticsDashboard({
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-                <h2 className="text-sm font-medium text-zinc-400 mb-4">New vs Churned Subscribers</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-100">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">New vs Churned Subscribers</h2>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={revenueTimeline}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -101,8 +101,8 @@ export function AnalyticsDashboard({
       {tab === 'Letters' && (
         <div className="space-y-8">
           {lettersTimeline.length > 0 ? (
-            <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-              <h2 className="text-sm font-medium text-zinc-400 mb-4">Letters Generated vs Posted (last 30 days)</h2>
+            <div className="bg-white rounded-lg p-6 border border-gray-100">
+              <h2 className="text-sm font-medium text-gray-500 mb-4">Letters Generated vs Posted (last 30 days)</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={lettersTimeline}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -125,8 +125,8 @@ export function AnalyticsDashboard({
       {tab === 'QR & Engagement' && (
         <div className="space-y-8">
           {scansTimeline.length > 0 ? (
-            <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-              <h2 className="text-sm font-medium text-zinc-400 mb-4">QR Scans per Day (last 30 days)</h2>
+            <div className="bg-white rounded-lg p-6 border border-gray-100">
+              <h2 className="text-sm font-medium text-gray-500 mb-4">QR Scans per Day (last 30 days)</h2>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={scansTimeline}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -148,8 +148,8 @@ export function AnalyticsDashboard({
         <div className="space-y-8">
           <div className="grid grid-cols-2 gap-6">
             {topSuburbs.length > 0 ? (
-              <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-                <h2 className="text-sm font-medium text-zinc-400 mb-4">Top suburbs by DA volume (last 30 days)</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-100">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">Top suburbs by DA volume (last 30 days)</h2>
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={topSuburbs.slice(0, 10)} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -164,8 +164,8 @@ export function AnalyticsDashboard({
               <EmptyState message="No suburb DA data yet." />
             )}
             {projectTypes.length > 0 ? (
-              <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-                <h2 className="text-sm font-medium text-zinc-400 mb-4">DA breakdown by project type</h2>
+              <div className="bg-white rounded-lg p-6 border border-gray-100">
+                <h2 className="text-sm font-medium text-gray-500 mb-4">DA breakdown by project type</h2>
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={projectTypes} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -187,11 +187,11 @@ export function AnalyticsDashboard({
       {tab === 'Acquisition Funnel' && (
         <div className="space-y-8">
           {campaigns.length > 0 && (
-            <div className="bg-zinc-900 rounded-lg p-4 border border-white/5">
-              <p className="text-xs text-zinc-500 mb-2">Campaigns</p>
+            <div className="bg-white rounded-lg p-4 border border-gray-100">
+              <p className="text-xs text-gray-400 mb-2">Campaigns</p>
               <div className="flex gap-2 flex-wrap">
                 {campaigns.map(c => (
-                  <a key={c.id} href={`/admin/campaigns/${c.id}`} className="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-full hover:bg-zinc-700 transition-colors">
+                  <a key={c.id} href={`/admin/campaigns/${c.id}`} className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors">
                     {c.name}
                   </a>
                 ))}
@@ -199,8 +199,8 @@ export function AnalyticsDashboard({
             </div>
           )}
           {funnelData.some(f => f.sent > 0) ? (
-            <div className="bg-zinc-900 rounded-lg p-6 border border-white/5">
-              <h2 className="text-sm font-medium text-zinc-400 mb-6">Acquisition funnel by channel (last 90 days)</h2>
+            <div className="bg-white rounded-lg p-6 border border-gray-100">
+              <h2 className="text-sm font-medium text-gray-500 mb-6">Acquisition funnel by channel (last 90 days)</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={funnelData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -226,8 +226,8 @@ export function AnalyticsDashboard({
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="bg-zinc-900 rounded-lg p-12 border border-white/5 text-center">
-      <p className="text-sm text-zinc-600">{message}</p>
+    <div className="bg-white rounded-lg p-12 border border-gray-100 text-center">
+      <p className="text-sm text-gray-600">{message}</p>
     </div>
   )
 }

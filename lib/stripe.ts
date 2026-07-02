@@ -14,8 +14,8 @@ export const PLANS = {
     priceId: process.env.STRIPE_PRO_PRICE_ID!,
     amount: 19900,
     currency: 'aud',
-    letters_per_month: 20,
-    description: 'Everything in Starter + 20 letters/month.',
+    letters_per_month: 10,
+    description: 'Everything in Starter + 10 letters/month.',
   },
   growth: {
     name: 'Growth',
@@ -23,7 +23,7 @@ export const PLANS = {
     amount: 24900,
     currency: 'aud',
     letters_per_month: 20,
-    description: 'Everything in Professional + expanded search radius.',
+    description: 'Everything in Professional + 20 letters/month + expanded radius.',
   },
 } as const
 

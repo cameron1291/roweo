@@ -47,11 +47,16 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     </div>
   `
 
-  await sendEmail({
+  const { error: sendError } = await sendEmail({
     to: prospect.email,
     subject: `Construction leads for ${suburbs || 'your service area'}`,
     html,
   })
+
+  if (sendError) {
+    console.error('Resend error:', sendError)
+    return NextResponse.json({ error: 'Email delivery failed' }, { status: 500 })
+  }
 
   const now = new Date().toISOString()
   await supabase.from('builder_prospects').update({

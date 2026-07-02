@@ -5,6 +5,12 @@ import { createServiceClient } from '@/lib/supabase-server'
 export const metadata: Metadata = {
   title: 'How Roweo Works — DA Leads for Australian Builders',
   description: 'See the full Roweo flow: DA matched to your suburb, letter printed and posted, homeowner scans QR, you get notified, quote comes in. Built for Australian residential builders.',
+  openGraph: {
+    title: 'How Roweo Works | From DA lodged to quote request',
+    description: 'Live DA data, professional letters in the post within 2 business days, QR tracking to know who responded. No cold calling, no ads.',
+    siteName: 'Roweo',
+    type: 'website',
+  },
 }
 
 export const dynamic = 'force-dynamic'
@@ -155,51 +161,135 @@ export default async function DemoPage() {
           </div>
 
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            {/* Letter mock — clean professional layout, no coloured header */}
-            <div className="flex-1 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden max-w-md" style={{ fontFamily: 'Georgia, serif' }}>
-              <div className="px-7 pt-6 pb-3 border-b border-gray-100">
-                <div className="flex items-start justify-between mb-0">
-                  {/* Logo placeholder — left aligned */}
-                  <div className="w-28 h-9 bg-[#1B2A4A] rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold tracking-wide">BAYSIDE BUILDING</span>
+            {/* ── REAL LETTER LAYOUT — matches the actual LetterDocument PDF ── */}
+            <div className="flex-1 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden max-w-[420px]" style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: '9.5px' }}>
+
+              {/* HEADER */}
+              <div className="flex items-start justify-between px-6 pt-5 pb-3 border-b border-gray-200">
+                {/* Logo placeholder — dashed box so builders see exactly where their logo goes */}
+                <div className="border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center w-28 h-9 gap-0.5">
+                  <svg className="w-3 h-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-4 4 4"/><circle cx="8.5" cy="14.5" r="1.5"/></svg>
+                  <span className="text-[9px] text-gray-400 font-medium">Your Logo Here</span>
+                </div>
+                {/* Neighbourhood tag */}
+                <div className="text-right">
+                  <div className="flex items-center gap-1 justify-end mb-0.5">
+                    <svg width="7" height="9" viewBox="0 0 10 12"><path d="M5 0C2.8 0 1 1.8 1 4c0 3 4 8 4 8s4-5 4-8c0-2.2-1.8-4-4-4zm0 5.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#3B6FDB"/></svg>
+                    <span className="text-[8px] font-bold text-[#3B6FDB] uppercase tracking-wider">Your Neighbourhood</span>
                   </div>
-                  {/* Sender details — right aligned */}
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-gray-800">Bayside Building Co.</p>
-                    <p className="text-xs text-gray-400 leading-relaxed mt-0.5">0412 345 678<br />baysidebuilding.com.au<br />Lic. No. 123456C</p>
-                    <p className="text-xs text-gray-400 mt-1">30 June 2026</p>
+                  <p className="text-[8px] text-gray-500 leading-tight text-right">Recent Development<br />Application Alert</p>
+                </div>
+              </div>
+
+              {/* ADDRESS ZONE */}
+              <div className="px-6 py-3">
+                <p className="text-[7px] text-gray-400 uppercase tracking-wide mb-1">The Property Owner</p>
+                <p className="text-[10px] font-bold text-[#1B2A4A] leading-snug">14 Paget Street<br />Parramatta NSW 2150</p>
+              </div>
+
+              {/* TWO-COLUMN BODY */}
+              <div className="flex gap-3 px-6 pb-2">
+
+                {/* LEFT COLUMN */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[8.5px] text-gray-500 mb-1.5">Hi there,</p>
+                  <p className="text-[13px] font-bold text-gray-900 leading-tight mb-1.5">
+                    We noticed you&apos;re planning<br />something <span className="text-[#3B6FDB]">exciting.</span>
+                  </p>
+                  <div className="w-5 h-0.5 bg-[#3B6FDB] mb-2" />
+
+                  <p className="text-[8.5px] text-gray-600 leading-relaxed mb-1.5">
+                    A Development Application has recently been lodged for your property at:
+                  </p>
+
+                  {/* DA address box */}
+                  <div className="bg-gray-50 border border-gray-200 rounded p-2 flex items-start gap-1.5 mb-2">
+                    <svg width="7" height="9" viewBox="0 0 10 12" className="shrink-0 mt-0.5"><path d="M5 0C2.8 0 1 1.8 1 4c0 3 4 8 4 8s4-5 4-8c0-2.2-1.8-4-4-4zm0 5.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#3B6FDB"/></svg>
+                    <div>
+                      <p className="text-[8.5px] font-bold text-gray-900 mb-0.5">14 Paget Street, Parramatta NSW</p>
+                      <p className="text-[7.5px] text-gray-500 mb-0.5">Proposed second storey addition to existing dwelling</p>
+                      <p className="text-[7.5px] text-gray-500">DA lodged: <span className="text-[#3B6FDB] font-bold">18 Jun 2026</span> · Ref: 2026/0412</p>
+                    </div>
+                  </div>
+
+                  <p className="text-[8.5px] text-gray-600 leading-relaxed mb-1.5">
+                    We&apos;ve completed over fifteen similar additions in Parramatta and know the council requirements well.
+                  </p>
+                  <p className="text-[8.5px] text-gray-600 leading-relaxed mb-2.5">
+                    We&apos;d love to come out, review your plans, and give you a straight quote — no charge, no pressure.
+                  </p>
+
+                  {/* Feature rows */}
+                  {[
+                    { title: 'Licensed & insured', desc: 'Fully licensed, insured and highly rated by homeowners in your area.' },
+                    { title: 'No-obligation quote', desc: "We'll review your plans and give you a straight quote — no pressure." },
+                    { title: 'Fast response', desc: 'We reply to all enquiries the same day.' },
+                  ].map(f => (
+                    <div key={f.title} className="flex items-start gap-1.5 mb-1.5 pb-1.5 border-b border-gray-100">
+                      <div className="w-3.5 h-3.5 rounded-full border border-gray-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg width="6" height="5" viewBox="0 0 8 7"><path d="M1 3.5l2 2L7 1" stroke="#3B6FDB" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-bold text-gray-900">{f.title}</p>
+                        <p className="text-[7.5px] text-gray-500 leading-tight">{f.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Handwritten-style note */}
+                  <p className="text-[12px] text-[#1B2A4A] mb-0.5 mt-2" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>A note from us</p>
+                  <div className="w-4 h-px bg-[#3B6FDB] mb-1.5" />
+                  <p className="text-[8px] text-gray-600 leading-relaxed mb-1">
+                    We know that getting the right builder makes all the difference. We&apos;re a local team and take real pride in our work. Scan the code — we&apos;d love to hear from you.
+                  </p>
+                  <p className="text-[12px] text-[#1B2A4A] mt-1.5" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>— Bayside Building Co.</p>
+                </div>
+
+                {/* RIGHT COLUMN */}
+                <div className="w-[100px] shrink-0">
+                  {/* QR card */}
+                  <div className="border border-[#3B6FDB] rounded p-2 text-center mb-2">
+                    <div className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center mx-auto mb-1">
+                      <svg width="12" height="12" viewBox="0 0 16 16"><path d="M2 7.5L8 2l6 5.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V7.5z" stroke="#3B6FDB" strokeWidth="1.2" fill="none"/><path d="M5.5 15V9.5h5V15" stroke="#3B6FDB" strokeWidth="1.2"/></svg>
+                    </div>
+                    <p className="text-[8px] font-bold text-[#1B2A4A] leading-tight mb-0.5">Ready for your<br />next step?</p>
+                    <div className="w-3.5 h-px bg-[#3B6FDB] mx-auto mb-1.5" />
+                    <p className="text-[7px] text-gray-500 leading-relaxed mb-1.5">Scan to view our work and get in touch directly.</p>
+                    {/* QR code mock */}
+                    <div className="w-14 h-14 mx-auto bg-white border border-gray-200 rounded p-1 mb-1 grid grid-cols-5 gap-px" style={{ gridTemplateRows: 'repeat(5, 1fr)' }}>
+                      {Array.from({ length: 25 }).map((_, i) => (
+                        <div key={i} className={`rounded-[1px] ${[0,1,2,5,6,7,10,12,14,15,17,18,20,22,23,24].includes(i) ? 'bg-gray-900' : 'bg-white'}`} />
+                      ))}
+                    </div>
+                    <p className="text-[6.5px] text-gray-400 italic">Scan me</p>
+                    <p className="text-[6px] text-gray-300 mt-0.5">roweo.com.au/scan/…</p>
+                  </div>
+
+                  {/* Security badge */}
+                  <div className="bg-[#1B2A4A] rounded p-1.5 flex items-start gap-1 mb-2">
+                    <div className="w-3.5 h-3.5 rounded-full bg-[#3B6FDB] flex items-center justify-center shrink-0 mt-0.5">
+                      <svg width="7" height="9" viewBox="0 0 10 12"><rect x="1" y="5" width="8" height="6" rx="1.5" stroke="white" strokeWidth="1"/><path d="M2.5 5V3.5a2.5 2.5 0 015 0V5" stroke="white" strokeWidth="1" strokeLinecap="round"/></svg>
+                    </div>
+                    <div>
+                      <p className="text-[7px] font-bold text-white mb-0.5">Your information is secure</p>
+                      <p className="text-[6.5px] text-blue-200 leading-tight">We respect your privacy and will never share your details.</p>
+                    </div>
+                  </div>
+
+                  {/* Supporting homeowners */}
+                  <div className="flex flex-col items-center gap-1 pt-1">
+                    <div className="w-4.5 h-4.5 rounded-full border border-[#3B6FDB] flex items-center justify-center w-5 h-5">
+                      <svg width="9" height="8" viewBox="0 0 12 11"><path d="M6 10S1 6.8 1 3.5A2.5 2.5 0 016 2a2.5 2.5 0 015 1.5C11 6.8 6 10 6 10z" fill="#3B6FDB"/></svg>
+                    </div>
+                    <p className="text-[7.5px] text-[#1B2A4A] text-center leading-tight" style={{ fontFamily: 'Georgia, serif' }}>Proudly supporting<br />homeowners in your area.</p>
                   </div>
                 </div>
               </div>
-              <div className="px-7 py-5">
-                {/* Recipient address — window envelope position */}
-                <div className="mb-4">
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">The Property Owner</p>
-                  <p className="text-sm font-semibold text-gray-900 leading-snug">14 Paget Street<br />Parramatta NSW 2150</p>
-                </div>
-                {/* RE line */}
-                <div className="border-l-2 border-[#1B2A4A] pl-3 py-1 mb-4">
-                  <p className="text-xs font-semibold text-gray-800">RE: Second Storey Extension — 14 Paget Street, Parramatta</p>
-                  <p className="text-xs text-gray-400 mt-0.5">DA No. 2025/0412 · Lodged 18 June 2026</p>
-                </div>
-                <p className="text-sm text-gray-700 mb-3">Dear Homeowner,</p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-3">We noticed your application for a second storey addition has been lodged with City of Parramatta Council and wanted to reach out before you start calling builders.</p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-3">We have completed fifteen similar additions in Parramatta over the past three years and know the council requirements well. We are happy to come out, review your plans, and give you a straight quote — no charge, no pressure.</p>
-                <p className="text-sm leading-relaxed text-gray-700 mb-4">Scan the QR code below to see our profile and get in touch. We usually respond the same day.</p>
-                <p className="text-sm text-gray-700 mb-4">Kind regards,<br /><span className="font-semibold text-gray-900">Bayside Building Co.</span><br /><span className="text-xs text-gray-400">0412 345 678 · baysidebuilding.com.au · Lic. No. 123456C</span></p>
-                {/* QR block — clean border, no fill */}
-                <div className="border border-gray-200 rounded p-3 flex items-center gap-4">
-                  <div className="w-16 h-16 flex-shrink-0 grid grid-cols-5 grid-rows-5 gap-px p-1 bg-white border border-gray-200 rounded">
-                    {Array.from({ length: 25 }).map((_, i) => (
-                      <div key={i} className={`rounded-sm ${[0,1,2,5,10,12,14,15,20,22,23,24,6,7,8,17,18,19].includes(i) ? 'bg-gray-900' : 'bg-white'}`} />
-                    ))}
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-800">Scan to view our profile &amp; request a quote</p>
-                    <p className="text-xs text-gray-400 mt-1">roweo.com.au/scan/bayside-abc123</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-300 mt-4 pt-3 border-t border-gray-100 leading-relaxed">This letter was sent independently by the builder named above and is not affiliated with any council or government authority. ABN 31 683 026 924</p>
+
+              {/* Compliance + footer bar */}
+              <div className="px-6 pt-2 pb-2 border-t border-gray-100 text-center">
+                <p className="text-[6px] text-gray-300 leading-relaxed mb-1">This letter was sent independently and is not affiliated with any local council or government authority.</p>
+                <p className="text-[7px] text-gray-400">Powered by <span className="font-bold text-[#3B6FDB]">Roweo</span></p>
               </div>
             </div>
 

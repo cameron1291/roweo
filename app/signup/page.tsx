@@ -35,6 +35,13 @@ export default function SignupPage() {
       return
     }
 
+    // Fire-and-forget welcome email
+    fetch('/api/auth/welcome', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name: fullName }),
+    }).catch(() => {})
+
     router.push('/onboarding')
     router.refresh()
   }

@@ -6,6 +6,7 @@ export interface LocationData {
   postcode: string | null
   daCount: number
   daCount30d: number
+  aiContent: string | null
   recentDas: {
     suburb: string
     project_type: string
@@ -56,7 +57,7 @@ export async function getLocationData(
     count30dQuery = count30dQuery.eq('project_type', projectType)
   }
 
-  const [dasResult, countResult, count30dResult, nearbyResult] = await Promise.all([
+  const [dasResult, countResult, count30dResult, nearbyResult, suburbRow] = await Promise.all([
     daQuery,
     countQuery,
     count30dQuery,
@@ -68,8 +69,17 @@ export async function getLocationData(
           .neq('name', suburb)
           .gt('da_count', 0)
           .order('da_count', { ascending: false })
-          .limit(5)
+          .limit(8)
       : Promise.resolve({ data: [] }),
+    suburb && state
+      ? supabase
+          .from('suburbs')
+          .select('ai_content, postcode')
+          .ilike('name', suburb)
+          .eq('state', state)
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   const das = dasResult.data ?? []
@@ -87,9 +97,10 @@ export async function getLocationData(
   return {
     suburb,
     state,
-    postcode: null,
+    postcode: (suburbRow as any)?.data?.postcode ?? null,
     daCount: countResult.count ?? 0,
     daCount30d: count30dResult.count ?? 0,
+    aiContent: (suburbRow as any)?.data?.ai_content ?? null,
     recentDas: das,
     topProjectTypes,
     nearbySuburbs: (nearbyResult.data ?? []) as any[],

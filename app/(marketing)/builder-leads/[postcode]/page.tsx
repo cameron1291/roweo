@@ -20,9 +20,23 @@ type Props = { params: Promise<{ postcode: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { postcode } = await params
+  if (!/^\d{4}$/.test(postcode)) return {}
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('postcodes')
+    .select('da_count')
+    .eq('postcode', postcode)
+    .single()
   return {
     title: `Builder Leads Postcode ${postcode} — DA Leads for Builders | Roweo`,
     description: `Find homeowners planning extensions, renovations and new builds in postcode ${postcode}. Roweo matches residential builders to development applications and posts letters on your behalf.`,
+    robots: (data?.da_count ?? 0) <= 3 ? { index: false } : undefined,
+    openGraph: {
+      title: `Builder Leads Postcode ${postcode} | Roweo`,
+      description: `Development applications in postcode ${postcode}. Get matched and have a letter posted to the homeowner within 2 business days.`,
+      siteName: 'Roweo',
+      type: 'website',
+    },
   }
 }
 
@@ -55,8 +69,6 @@ export default async function PostcodeLeadsPage({ params }: Props) {
 
   return (
     <>
-      {postcodeData.da_count <= 3 && <meta name="robots" content="noindex" />}
-
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400">

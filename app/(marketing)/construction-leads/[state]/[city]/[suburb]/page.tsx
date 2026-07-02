@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import { getLocationData, PROJECT_TYPE_LABELS } from '@/lib/seo/get-location-data'
 
 export const dynamic = 'force-dynamic'
@@ -17,14 +18,25 @@ function capitalize(s: string) {
   return s.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
+// Cache per request so generateMetadata and page don't double-fetch
+const getCachedLocationData = cache(getLocationData)
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { suburb: suburbSlug, state, city } = await params
   const suburb = capitalize(suburbSlug)
   const stateUpper = state.toUpperCase()
+  const data = await getCachedLocationData(suburb, stateUpper)
   return {
     title: `Construction Leads ${suburb} ${stateUpper} — DA Leads for Builders`,
     description: `Find homeowners planning renovations, extensions and new builds in ${suburb}. Roweo matches you to development applications and posts letters on your behalf. From $149/month.`,
     alternates: { canonical: `/construction-leads/${state}/${city}/${suburbSlug}` },
+    robots: data.daCount <= 3 ? { index: false } : undefined,
+    openGraph: {
+      title: `Construction Leads ${suburb} ${stateUpper} | Roweo`,
+      description: `${data.daCount30d > 0 ? `${data.daCount30d} DAs lodged in ${suburb} in the last 30 days.` : `${data.daCount} DAs on record in ${suburb}.`} Get matched to homeowners before they call anyone.`,
+      siteName: 'Roweo',
+      type: 'website',
+    },
   }
 }
 
@@ -45,16 +57,12 @@ export default async function SuburbLeadsPage({ params }: Props) {
   const stateName = STATE_NAMES[stateUpper] ?? stateUpper
   const cityName = capitalize(city)
 
-  const data = await getLocationData(suburb, stateUpper)
+  const data = await getCachedLocationData(suburb, stateUpper)
 
   if (data.daCount === 0) notFound()
 
-  const noindex = data.daCount <= 3
-
   return (
-    <div className={noindex ? 'hidden' : ''}>
-      {noindex && <meta name="robots" content="noindex" />}
-
+    <>
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400 flex items-center gap-1.5">
@@ -102,37 +110,35 @@ export default async function SuburbLeadsPage({ params }: Props) {
           </div>
         )}
 
-        {/* Recent DAs */}
-        {data.recentDas.length > 0 && (
+        {/* Project type breakdown */}
+        {data.topProjectTypes.length > 0 && (
           <section className="mb-12">
             <h2 className="text-lg font-bold text-[#1B2A4A] mb-4">
-              Recent development applications in {suburb}
+              Project types being planned in {suburb}
             </h2>
-            <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100">
-              {data.recentDas.map((da, i) => (
-                <div key={i} className="px-5 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_BADGE[da.project_type] ?? TYPE_BADGE.other}`}>
-                        {PROJECT_TYPE_LABELS[da.project_type] ?? da.project_type}
-                      </span>
-                      <p className="text-sm mt-1.5 text-gray-700 truncate">
-                        {da.description?.slice(0, 130)}{(da.description?.length ?? 0) > 130 ? '…' : ''}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-gray-400">{da.lodged_date}</p>
-                      {da.estimated_value_aud && (
-                        <p className="text-sm text-gray-500 mt-0.5">${(da.estimated_value_aud / 1000).toFixed(0)}k</p>
-                      )}
-                    </div>
-                  </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {data.topProjectTypes.map(t => (
+                <div key={t.type} className="border border-gray-200 rounded-xl p-4 text-center">
+                  <p className="text-2xl font-bold text-[#1B2A4A]">{t.count}</p>
+                  <p className="text-xs text-gray-500 mt-1">{PROJECT_TYPE_LABELS[t.type] ?? t.type}</p>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              DA data sourced from Australian government planning portals under open government licences. Property addresses and owner details are not displayed.
+            <p className="text-xs text-gray-400 mt-3">
+              Based on DA data from Australian government planning portals. Full lead details are available to Roweo subscribers only.
             </p>
+          </section>
+        )}
+
+        {/* AI-generated suburb content */}
+        {data.aiContent && (
+          <section className="mb-12 prose prose-gray max-w-none">
+            <h2 className="text-lg font-bold text-[#1B2A4A] mb-4">
+              Residential construction in {suburb}
+            </h2>
+            {data.aiContent.split('\n\n').filter(Boolean).map((para, i) => (
+              <p key={i} className="text-gray-600 leading-relaxed mb-4">{para}</p>
+            ))}
           </section>
         )}
 
@@ -211,6 +217,6 @@ export default async function SuburbLeadsPage({ params }: Props) {
           </section>
         )}
       </div>
-    </div>
+    </>
   )
 }

@@ -28,7 +28,7 @@ const TEMPLATES = {
     body: (company: string, demoUrl: string) => `
       <p>Hi,</p>
       <p>We saw someone from ${company} viewed the demo page we put together for you. Happy to answer any questions about how it would work for your suburbs.</p>
-      <p>If you're ready to try it: <a href="${demoUrl}" style="color:#3B6FDB">get started here</a> — it's $299/month, no lock-in.</p>
+      <p>If you're ready to try it: <a href="${demoUrl}" style="color:#3B6FDB">get started here</a> — from $149/month, no lock-in.</p>
       <p>— The Roweo team</p>
     `,
   },
@@ -37,7 +37,7 @@ const TEMPLATES = {
     body: (company: string, demoUrl: string) => `
       <p>Hi,</p>
       <p>We noticed you checked out the demo for ${company}. Whenever you're ready to start getting matched to development applications in your service area, it only takes 15 minutes to set up.</p>
-      <p><a href="${demoUrl}" style="color:#3B6FDB">Start your trial</a> — $299/month, cancel any time.</p>
+      <p><a href="${demoUrl}" style="color:#3B6FDB">Start your trial</a> — from $149/month, cancel any time.</p>
       <p>— The Roweo team</p>
     `,
   },

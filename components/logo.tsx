@@ -10,8 +10,9 @@ interface LogoProps {
 }
 
 export function Logo({ variant = 'full', className, href = '/', height = 32 }: LogoProps) {
+  // logo.png cropped to 1143×348 (3.28:1). logo-mark.png cropped to ~1:1.
   const src = variant === 'mark' ? '/logo-mark.png' : '/logo.png'
-  const width = variant === 'mark' ? height : height * 3
+  const width = variant === 'mark' ? Math.round(height * 1.1) : Math.round(height * 3.28)
 
   const img = (
     <Image
@@ -20,7 +21,7 @@ export function Logo({ variant = 'full', className, href = '/', height = 32 }: L
       width={width}
       height={height}
       priority
-      className={cn('object-contain', className)}
+      className={cn('object-contain object-left', className)}
     />
   )
 

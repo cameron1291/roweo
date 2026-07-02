@@ -13,7 +13,7 @@ interface Lead {
   status: string
   scan_count: number
   builder_note: string | null
-  created_at: string
+  matched_at: string
   trigger_stage: string
   development_applications: {
     suburb: string
@@ -29,6 +29,7 @@ interface Lead {
 const TABS = [
   { id: 'all', label: 'All' },
   { id: 'new', label: 'New' },
+  { id: 'viewed', label: 'Viewed' },
   { id: 'saved', label: 'Saved' },
   { id: 'letter_approved', label: 'Letter Approved' },
   { id: 'sent', label: 'Sent' },
@@ -114,9 +115,9 @@ function LeadList({
 }) {
   if (leads.length === 0) {
     return (
-      <Card className="border-white/10">
+      <Card className="border-gray-200">
         <CardContent className="p-8 text-center">
-          <p className="text-sm text-zinc-500">No leads in this category.</p>
+          <p className="text-sm text-gray-400">No leads in this category.</p>
         </CardContent>
       </Card>
     )
@@ -128,18 +129,18 @@ function LeadList({
         const da = lead.development_applications
         const busy = busyId === lead.id
         return (
-          <Card key={lead.id} className="border-white/10">
+          <Card key={lead.id} className="border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-medium text-white">{da.suburb}, {da.state}</p>
+                    <p className="text-sm font-medium text-gray-900">{da.suburb}, {da.state}</p>
                     <Badge variant="secondary" className="text-xs">{formatProjectType(da.project_type)}</Badge>
                     {lead.trigger_stage === 'approval' && <Badge variant="outline" className="text-xs">DA Approved</Badge>}
                     {lead.scan_count > 0 && <Badge className="text-xs bg-green-500/20 text-green-400 border-green-500/30">Scanned ×{lead.scan_count}</Badge>}
                   </div>
-                  <p className="text-xs text-zinc-500 mt-1.5 line-clamp-2">{da.description}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-zinc-600">
+                  <p className="text-xs text-gray-400 mt-1.5 line-clamp-2">{da.description}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                     {da.lodged_date && <span>Lodged {new Date(da.lodged_date).toLocaleDateString('en-AU')}</span>}
                     {da.da_number && <span>{da.da_number}</span>}
                     {da.estimated_value_aud && <span>${da.estimated_value_aud.toLocaleString('en-AU')}</span>}
@@ -160,7 +161,7 @@ function LeadList({
                   </Button>
                 )}
                 {!['ignored', 'letter_approved', 'printed', 'posted', 'scanned'].includes(lead.status) && (
-                  <Button size="sm" variant="ghost" onClick={() => onIgnore(lead.id)} disabled={busy} className="gap-1 text-xs h-7 text-zinc-500">
+                  <Button size="sm" variant="ghost" onClick={() => onIgnore(lead.id)} disabled={busy} className="gap-1 text-xs h-7 text-gray-400">
                     <X className="w-3 h-3" /> Ignore
                   </Button>
                 )}

@@ -8,16 +8,15 @@ export default async function LetterSettingsPage() {
 
   const { data: builder } = await supabase
     .from('builder_profiles')
-    .select('letter_template_approved, letter_greeting, letter_sign_off, letter_compliance_disclaimer, brand_color, logo_url, tagline')
+    .select('letter_template_approved, letter_greeting, letter_sign_off, letter_compliance_disclaimer, brand_color, logo_url, tagline, company_name, letter_body_template, letter_note')
     .eq('user_id', user.id)
     .single()
 
   if (!builder) return null
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-xl font-semibold text-white mb-1">Letter template</h1>
-      <p className="text-sm text-zinc-400 mb-6">
+    <div>
+      <p className="text-sm text-gray-500 mb-6">
         This is the letter sent to homeowners who have lodged a matching development application.
       </p>
       <LetterApprovalCard builder={builder} />
