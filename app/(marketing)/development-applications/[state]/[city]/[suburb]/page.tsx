@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { getLocationData, PROJECT_TYPE_LABELS } from '@/lib/seo/get-location-data'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
 
 const TYPE_BADGE: Record<string, string> = {
   extension: 'bg-blue-100 text-blue-700',

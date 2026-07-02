@@ -33,8 +33,22 @@ export default async function HomePage() {
   const daCount = await getLiveDaCount()
   const displayCount = daCount > 0 ? daCount.toLocaleString() : '300+'
 
+  const orgSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Roweo',
+    url: 'https://roweo.com.au',
+    description: 'DA-matched construction leads for Australian residential builders. Letters posted to homeowners within 2 business days of a development application being lodged.',
+    areaServed: [
+      { '@type': 'State', name: 'New South Wales' },
+      { '@type': 'State', name: 'Australian Capital Territory' },
+    ],
+    serviceType: 'Construction Lead Generation',
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
       {/* ── HERO ─────────────────────────────────────────────────── */}
       <section className="relative min-h-[88vh] flex items-center overflow-hidden">
         {/* Background image */}
@@ -53,7 +67,7 @@ export default async function HomePage() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 text-xs font-semibold text-blue-300 bg-blue-500/15 border border-blue-400/20 rounded-full px-4 py-1.5 mb-8">
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-              {displayCount} DAs lodged across Australia in the last 30 days
+              {displayCount} DAs lodged across NSW & ACT in the last 30 days
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight tracking-tight">

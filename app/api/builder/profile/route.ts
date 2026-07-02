@@ -112,17 +112,34 @@ export async function GET() {
   return NextResponse.json(data)
 }
 
+// Fields that builders are allowed to update via PATCH — anything not in this set
+// is ignored, protecting fields like letter_compliance_disclaimer, user_id, id.
+const PATCH_ALLOWED = new Set([
+  'logo_url', 'brand_color', 'tagline', 'phone', 'website', 'license_number',
+  'letter_greeting', 'letter_sign_off', 'letter_body_template', 'letter_note',
+  'letter_template_approved', 'auto_send',
+  'service_suburbs', 'service_states', 'project_types', 'min_value_aud', 'max_value_aud',
+  'service_radius_km',
+])
+
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const raw = await req.json()
+
+  // Strip any fields not in the allowlist before touching the DB
+  const body: Record<string, unknown> = {}
+  for (const key of Object.keys(raw)) {
+    if (PATCH_ALLOWED.has(key)) body[key] = raw[key]
+  }
+
+  const serviceSuburbs = Array.isArray(body.service_suburbs) ? (body.service_suburbs as string[]) : null
 
   // If suburbs changed, update business_lat/lng from first suburb centroid
-  if (Array.isArray(body.service_suburbs) && body.service_suburbs.length > 0) {
-    const firstSuburb = body.service_suburbs[0]
-    const parts = firstSuburb.split(',')
+  if (serviceSuburbs && serviceSuburbs.length > 0) {
+    const parts = serviceSuburbs[0].split(',')
     const suburbName = parts[0]?.trim()
     const suburbState = parts[1]?.trim() || 'NSW'
     const { data: suburbRow } = await supabase
@@ -146,7 +163,7 @@ export async function PATCH(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // If service suburbs changed, re-run matching for any new areas
-  if (Array.isArray(body.service_suburbs) && body.service_suburbs.length > 0) {
+  if (serviceSuburbs && serviceSuburbs.length > 0) {
     const { data: bp } = await supabase
       .from('builder_profiles')
       .select('id, project_types, min_value_aud, max_value_aud')
@@ -155,7 +172,7 @@ export async function PATCH(req: NextRequest) {
     if (bp?.id) {
       runInitialMatching(
         bp.id, user.id,
-        body.service_suburbs,
+        serviceSuburbs,
         bp.project_types ?? [],
         bp.min_value_aud ?? 0,
         bp.max_value_aud ?? null,

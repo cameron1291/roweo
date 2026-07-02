@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
 
 const STATE_NAMES: Record<string, string> = {
   nsw: 'New South Wales', vic: 'Victoria', qld: 'Queensland',

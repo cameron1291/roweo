@@ -69,9 +69,47 @@ const LETTER_PACKS = [
   { qty: 100, price: 239 },
 ]
 
+const FAQ_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What counts as a letter?',
+      acceptedAnswer: { '@type': 'Answer', text: "Each personalised letter we print and post to a homeowner uses one letter from your monthly quota. Starter plan doesn't include letters — you use the lead data to do your own outreach." },
+    },
+    {
+      '@type': 'Question',
+      name: 'What if I use all my letters before the month is up?',
+      acceptedAnswer: { '@type': 'Answer', text: "If you're consistently hitting your limit, upgrade to Growth — 50 letters per month for $349/month, plus an expanded 50 km search radius. Or buy a one-time letter pack to top up for the current month. Packs don't expire." },
+    },
+    {
+      '@type': 'Question',
+      name: 'Who prints and posts the letters?',
+      acceptedAnswer: { '@type': 'Answer', text: 'We do. You approve your letter template once during setup. After that, every new DA match gets a letter printed and posted to the homeowner within 2 business days.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'What states do you cover?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Currently live in NSW and ACT. Victoria and Queensland are launching soon — join the waitlist during signup and we\'ll notify you when your state goes live.' },
+    },
+    {
+      '@type': 'Question',
+      name: "What's the difference between Professional and Growth?",
+      acceptedAnswer: { '@type': 'Answer', text: 'Growth gives you 50 letters per month (vs 20 on Professional), an expanded 50 km search radius, priority matching on high-value DAs, and priority support. Built for builders covering a wide area or running high letter volumes.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I cancel at any time?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes. Cancel through your billing settings. You keep access until the end of your billing period. No lock-in, no cancellation fees.' },
+    },
+  ],
+}
+
 export default function PricingPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }} />
       <section className="max-w-5xl mx-auto px-6 py-16 text-center">
         <h1 className="text-3xl font-bold text-[#1B2A4A] mb-4">Simple, transparent pricing</h1>
         <p className="text-gray-500 mb-12 max-w-xl mx-auto">
@@ -157,7 +195,7 @@ export default function PricingPage() {
               },
               {
                 q: 'What if I use all my letters before the month is up?',
-                a: 'Buy a letter pack to top up instantly. Packs don\'t expire. You can also upgrade to Growth if you\'re consistently sending more than 20 letters a month — it includes 50 letters for $349/month.',
+                a: 'If you\'re consistently hitting your limit, upgrade to Growth — 50 letters per month for $349/month, plus an expanded 50 km search radius. Or buy a one-time letter pack to top up for the current month. Packs don\'t expire and can be used whenever.',
               },
               {
                 q: 'Who prints and posts the letters?',

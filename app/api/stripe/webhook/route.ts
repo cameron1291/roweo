@@ -151,13 +151,17 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('Stripe webhook handler error', err)
-    // Log but still return 200 so Stripe doesn't retry
     try {
-      await supabase.from('subscription_events').insert({
-        event_type: 'webhook_error',
+      await supabase.from('webhook_events').insert({
         stripe_event_id: event.id,
+        event_type: event.type,
+        status: 'failed',
+        error_message: err instanceof Error ? err.message : String(err),
       })
-    } catch { /* best-effort logging */ }
+    } catch { /* best-effort */ }
+    // Return 500 so Stripe retries — the idempotency check at the top of this
+    // handler ensures a successful retry won't double-process the event
+    return NextResponse.json({ error: 'Handler failed' }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })

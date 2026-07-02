@@ -12,6 +12,10 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [verificationPending, setVerificationPending] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -19,7 +23,7 @@ export default function SignupPage() {
     setError('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
@@ -37,8 +41,61 @@ export default function SignupPage() {
       body: JSON.stringify({ email, name: fullName }),
     }).catch(() => {})
 
+    // session is null when Supabase requires email confirmation
+    if (!data.session) {
+      setVerificationPending(true)
+      setLoading(false)
+      return
+    }
+
     router.push('/onboarding')
-    router.refresh()
+  }
+
+  async function handleResend() {
+    if (resendCooldown || resending) return
+    setResending(true)
+    const supabase = createClient()
+    await supabase.auth.resend({ type: 'signup', email })
+    setResending(false)
+    setResendCooldown(true)
+    setTimeout(() => setResendCooldown(false), 60_000)
+  }
+
+  if (verificationPending) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
+        <div className="w-full max-w-md text-center">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-[#1B2A4A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your inbox</h1>
+          <p className="text-sm text-gray-500 mb-1">We sent a verification link to</p>
+          <p className="text-sm font-semibold text-gray-900 mb-6">{email}</p>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6 text-sm text-amber-700 text-left">
+            The link expires in 24 hours. Check your spam folder if you don&apos;t see it.
+          </div>
+
+          <button
+            onClick={handleResend}
+            disabled={resending || resendCooldown}
+            className="w-full border border-gray-200 hover:border-gray-300 text-gray-700 font-medium py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50 mb-4"
+          >
+            {resending ? 'Sending…' : resendCooldown ? 'Sent — check your inbox' : 'Resend verification email'}
+          </button>
+
+          <button
+            onClick={() => setVerificationPending(false)}
+            className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            Use a different email address
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -75,7 +132,7 @@ export default function SignupPage() {
 
         <div className="border-t border-white/10 pt-6">
           <p className="text-xs text-blue-300/60 leading-relaxed">
-            Currently live in NSW and ACT. No contract. Cancel any time.
+            Currently live in NSW and ACT. From $149/month. No contract.
           </p>
           <div className="flex items-center gap-3 mt-4">
             <div className="flex -space-x-2">
@@ -99,7 +156,7 @@ export default function SignupPage() {
 
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Create your account</h1>
           <p className="text-gray-500 text-sm mb-8">
-            Start free. Set your suburbs. No contract.
+            Set your service area. Go live in 20 minutes.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -136,17 +193,36 @@ export default function SignupPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="At least 8 characters"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={8}
-                autoComplete="new-password"
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1B2A4A] focus:ring-1 focus:ring-[#1B2A4A]/20 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="At least 8 characters"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 pr-10 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#1B2A4A] focus:ring-1 focus:ring-[#1B2A4A]/20 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
@@ -154,11 +230,11 @@ export default function SignupPage() {
               disabled={loading}
               className="w-full bg-[#1B2A4A] hover:bg-[#243660] text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-60 mt-2"
             >
-              {loading ? 'Creating account…' : 'Create free account →'}
+              {loading ? 'Creating account…' : 'Create account →'}
             </button>
 
             <div className="flex items-center gap-3 pt-1">
-              {['No credit card required', 'Cancel any time'].map(t => (
+              {['From $149/mo', 'Cancel any time'].map(t => (
                 <div key={t} className="flex items-center gap-1 text-xs text-gray-400">
                   <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
                   {t}

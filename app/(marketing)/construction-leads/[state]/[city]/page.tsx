@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
 
 const STATE_NAMES: Record<string, string> = {
   nsw: 'New South Wales', vic: 'Victoria', qld: 'Queensland',
@@ -83,9 +83,21 @@ export default async function CityLeadsPage({ params }: Props) {
   const recentDas = dasResult.data ?? []
   const daCount = countResult.count ?? 0
   const suburbs = suburbsResult.data ?? []
+  const isLive = ['nsw', 'act'].includes(state)
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Roweo', item: 'https://roweo.com.au' },
+      { '@type': 'ListItem', position: 2, name: 'Construction Leads', item: 'https://roweo.com.au/construction-leads' },
+      { '@type': 'ListItem', position: 3, name: cityName, item: `https://roweo.com.au/construction-leads/${state}/${city}` },
+    ],
+  }
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400 flex items-center gap-1.5">
@@ -96,6 +108,19 @@ export default async function CityLeadsPage({ params }: Props) {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-12">
+
+        {/* Coming-soon notice for non-live states */}
+        {!isLive && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-6 py-5 mb-8">
+            <p className="font-semibold text-amber-800 mb-1">{stateName} — coming soon</p>
+            <p className="text-sm text-amber-700 mb-3">
+              Roweo is currently live in NSW and ACT. {stateName} is on our roadmap — sign up and we&apos;ll email you as soon as your state goes live.
+            </p>
+            <Link href="/signup" className="text-sm font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900">
+              Join the waitlist →
+            </Link>
+          </div>
+        )}
 
         {/* Header */}
         <div className="mb-10">

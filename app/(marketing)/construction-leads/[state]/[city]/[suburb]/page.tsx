@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { getLocationData, PROJECT_TYPE_LABELS } from '@/lib/seo/get-location-data'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 86400
 
 const STATE_NAMES: Record<string, string> = {
   NSW: 'New South Wales', VIC: 'Victoria', QLD: 'Queensland',

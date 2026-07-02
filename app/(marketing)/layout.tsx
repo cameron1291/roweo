@@ -28,7 +28,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               href="/signup"
               className="bg-[#1B2A4A] hover:bg-[#243660] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
             >
-              Get started free
+              Get started
             </Link>
             <button
               className="md:hidden p-2 text-gray-500 hover:text-gray-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
