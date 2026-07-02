@@ -1,12 +1,44 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase-server'
 
-// Simple rate limiting using Supabase. No Upstash dependency at MVP.
-// Stores hit counts in memory per worker process — resets on cold start.
-// For MVP traffic volumes this is sufficient. Upgrade to Upstash Redis when needed.
+// Persistent rate limiting backed by Supabase.
+// Uses an upsert on a rate_limits table so limits survive cold starts.
+// Falls back to allowing the request if the DB call fails — never block on infra errors.
 
+export async function rateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<{ success: boolean; remaining: number }> {
+  try {
+    const supabase = createServiceClient()
+    const now = Date.now()
+    const windowStart = now - windowMs
+
+    // Upsert: increment hit count if key exists within window, or create new entry
+    const { data, error } = await supabase.rpc('rate_limit_check', {
+      p_key: key,
+      p_limit: limit,
+      p_window_ms: windowMs,
+    })
+
+    if (error || data === null) {
+      // Fail open — never block legitimate users due to infra issues
+      return { success: true, remaining: limit }
+    }
+
+    return {
+      success: data.allowed as boolean,
+      remaining: Math.max(0, (data.remaining as number) ?? 0),
+    }
+  } catch {
+    return { success: true, remaining: limit }
+  }
+}
+
+// Simple in-process fallback for non-critical paths where DB latency isn't worth it
 const hitMap = new Map<string, { count: number; resetAt: number }>()
 
-export function rateLimit(
+export function rateLimitSync(
   key: string,
   limit: number,
   windowMs: number

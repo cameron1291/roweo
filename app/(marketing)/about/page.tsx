@@ -46,7 +46,7 @@ export default function AboutPage() {
             And yet most builders never see them. They wait for referrals, compete on Hipages with a dozen other quotes, or spend money on ads that reach people who might be planning something someday. Roweo was built to change that.
           </p>
           <p className="text-gray-600 leading-relaxed mb-5">
-            We ingest DA data from planning portals across Australia daily, classify each project by type, match it to builders based on their service area and specialisation, and post a professional branded letter to the homeowner's door within two business days. The homeowner gets a credible, personalised letter from a local builder before they've spoken to anyone. The builder gets a warm lead — with QR tracking to know who responded.
+            We ingest DA data from NSW and ACT government planning portals daily, classify each project by type, match it to builders based on their service area and specialisation, and post a professional branded letter to the homeowner's door within two business days. The homeowner gets a credible, personalised letter from a local builder before they've spoken to anyone. The builder gets a warm lead — with QR tracking to know who responded. Victoria and Queensland are launching soon.
           </p>
           <p className="text-gray-600 leading-relaxed">
             The result: builders who use Roweo are first to the door, first to quote, and win more work at full margin — without cold calling, without ads, and without competing on price in a crowded marketplace.

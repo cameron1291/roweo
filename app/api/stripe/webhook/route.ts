@@ -18,6 +18,14 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServiceClient()
 
+  // Idempotency: skip already-processed events
+  const { data: existing } = await supabase
+    .from('subscription_events')
+    .select('id')
+    .eq('stripe_event_id', event.id)
+    .maybeSingle()
+  if (existing) return NextResponse.json({ received: true })
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {

@@ -37,12 +37,12 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const MOCK_DAS = [
-  { suburb: 'Parramatta', state: 'NSW', project_type: 'extension', description: 'Alterations and additions — proposed second storey addition to existing dwelling', lodged_date: '2026-06-28', estimated_value_aud: 185000 },
-  { suburb: 'Blacktown', state: 'NSW', project_type: 'new_dwelling', description: 'Construction of new single storey dwelling with double garage', lodged_date: '2026-06-27', estimated_value_aud: 420000 },
-  { suburb: 'Penrith', state: 'NSW', project_type: 'granny_flat', description: 'Construction of secondary dwelling (granny flat) to rear of existing property', lodged_date: '2026-06-27', estimated_value_aud: 92000 },
-  { suburb: 'Liverpool', state: 'NSW', project_type: 'renovation', description: 'Internal alterations — kitchen, bathrooms and living areas', lodged_date: '2026-06-26', estimated_value_aud: 88000 },
-  { suburb: 'Campbelltown', state: 'NSW', project_type: 'pool', description: 'Construction of in-ground swimming pool and associated landscaping', lodged_date: '2026-06-25', estimated_value_aud: 58000 },
-  { suburb: 'Castle Hill', state: 'NSW', project_type: 'extension', description: 'First floor addition and ground floor alterations to existing dwelling', lodged_date: '2026-06-25', estimated_value_aud: 260000 },
+  { suburb: 'Parramatta', state: 'NSW', project_type: 'extension', description: 'Alterations and additions — proposed second storey addition to existing dwelling', lodged_date: '2026-07-01', estimated_value_aud: 185000 },
+  { suburb: 'Castle Hill', state: 'NSW', project_type: 'extension', description: 'First floor addition and ground floor alterations including new master bedroom and ensuite', lodged_date: '2026-07-01', estimated_value_aud: 260000 },
+  { suburb: 'Kellyville', state: 'NSW', project_type: 'new_dwelling', description: 'Construction of new two-storey dwelling with double garage and alfresco area', lodged_date: '2026-06-30', estimated_value_aud: 680000 },
+  { suburb: 'Baulkham Hills', state: 'NSW', project_type: 'renovation', description: 'Alterations and additions — knockdown and rebuild of existing single storey dwelling', lodged_date: '2026-06-30', estimated_value_aud: 520000 },
+  { suburb: 'Penrith', state: 'NSW', project_type: 'granny_flat', description: 'Construction of secondary dwelling (granny flat) to rear of existing property', lodged_date: '2026-06-29', estimated_value_aud: 148000 },
+  { suburb: 'Blacktown', state: 'NSW', project_type: 'pool', description: 'Construction of in-ground swimming pool, decking, fencing and associated landscaping', lodged_date: '2026-06-29', estimated_value_aud: 72000 },
 ]
 
 export default async function DemoPage() {
@@ -53,7 +53,7 @@ export default async function DemoPage() {
     supabase
       .from('development_applications')
       .select('suburb, state, project_type, description, lodged_date, estimated_value_aud')
-      .neq('project_type', 'commercial')
+      .in('project_type', ['extension', 'new_dwelling', 'renovation', 'granny_flat', 'pool', 'duplex'])
       .order('lodged_date', { ascending: false })
       .limit(6),
     supabase
@@ -506,7 +506,7 @@ export default async function DemoPage() {
       {/* CTA */}
       <section className="bg-[#1B2A4A] py-20 px-6 text-center">
         <div className="max-w-xl mx-auto">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to start getting leads from DAs?</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Start finding DA leads today</h2>
           <p className="text-blue-200 mb-8 text-lg">Setup takes 20 minutes. First letter goes out within 2 business days.</p>
           <Link
             href="/signup"

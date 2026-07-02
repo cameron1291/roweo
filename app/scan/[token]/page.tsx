@@ -12,7 +12,7 @@ export default async function ScanPage({ params }: { params: Promise<{ token: st
   const { token } = await params
 
   const ip = (await headers()).get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const { success } = rateLimit(`scan:${ip}:${token}`, 10, 10 * 60 * 1000)
+  const { success } = await rateLimit(`scan:${ip}:${token}`, 10, 10 * 60 * 1000)
   if (!success) notFound()
 
   const supabase = createServiceClient()

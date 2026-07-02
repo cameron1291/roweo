@@ -173,11 +173,7 @@ export default async function DashboardPage() {
         </div>
 
         {recentLeads.length === 0 ? (
-          <Card className="border-gray-200">
-            <CardContent className="p-8 text-center">
-              <p className="text-sm text-gray-400">No leads yet. New development applications matching your service area will appear here automatically.</p>
-            </CardContent>
-          </Card>
+          <EmptyLeadsState letterApproved={builder?.letter_template_approved ?? false} />
         ) : (
           <div className="space-y-2">
             {recentLeads.map((lead: any) => {
@@ -202,6 +198,73 @@ export default async function DashboardPage() {
         )}
       </div>
     </div>
+  )
+}
+
+function EmptyLeadsState({ letterApproved }: { letterApproved: boolean }) {
+  const steps = [
+    {
+      done: true,
+      label: 'Account created',
+      sub: 'You\'re signed in and ready to go.',
+    },
+    {
+      done: letterApproved,
+      label: 'Letter template approved',
+      sub: letterApproved
+        ? 'Your branded letter is ready to send.'
+        : 'Review your letter design so we can start posting.',
+      href: letterApproved ? undefined : '/dashboard/settings/letter',
+      cta: 'Review letter →',
+    },
+    {
+      done: false,
+      label: 'First DA match',
+      sub: 'Once your template is approved, matching DAs appear here automatically — usually within 24 hours.',
+    },
+    {
+      done: false,
+      label: 'First letter posted',
+      sub: 'We print and post your branded letter to the homeowner within 2 business days.',
+    },
+    {
+      done: false,
+      label: 'First QR scan',
+      sub: 'You\'ll get an instant notification when the homeowner scans your letter.',
+    },
+  ]
+
+  return (
+    <Card className="border-gray-200">
+      <CardContent className="p-6">
+        <p className="text-sm font-semibold text-gray-900 mb-1">Getting started</p>
+        <p className="text-xs text-gray-400 mb-6">Here's what happens between now and your first lead.</p>
+        <div className="space-y-4">
+          {steps.map((step, i) => (
+            <div key={i} className="flex gap-3 items-start">
+              <div className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center mt-0.5 ${step.done ? 'bg-green-500/20' : 'bg-gray-100'}`}>
+                {step.done ? (
+                  <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className="text-[10px] font-bold text-gray-400">{i + 1}</span>
+                )}
+              </div>
+              <div className="flex-1">
+                <p className={`text-sm font-medium ${step.done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{step.label}</p>
+                <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{step.sub}</p>
+                {step.href && (
+                  <Link href={step.href} className="text-xs text-[#1B2A4A] font-medium hover:underline mt-1 inline-block">
+                    {step.cta}
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

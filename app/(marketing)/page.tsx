@@ -61,7 +61,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="text-lg md:text-xl text-blue-100/80 mt-6 leading-relaxed max-w-xl">
-              When a homeowner lodges a development application in your area, Roweo posts a professional, branded letter to their door — with your details and a QR code — before they've spoken to a single builder.
+              Roweo monitors new Development Applications, matches them to your service area, and posts branded letters to homeowners before they start calling builders.
             </p>
 
             <div className="flex flex-col sm:flex-row items-start gap-4 mt-10">
@@ -91,8 +91,8 @@ export default async function HomePage() {
             {[
               { value: displayCount, label: 'DAs matched in last 30 days' },
               { value: '2 days', label: 'DA lodged to letter in the post' },
-              { value: '$149/mo', label: 'Flat rate, no per-letter fees' },
-              { value: 'All states', label: 'NSW, VIC, QLD, ACT & more' },
+              { value: 'From $149', label: 'Monthly plans, no lock-in' },
+              { value: 'NSW & ACT', label: 'VIC & QLD coming soon' },
             ].map(s => (
               <div key={s.label}>
                 <p className="text-2xl md:text-3xl font-bold text-[#1B2A4A]">{s.value}</p>
@@ -118,12 +118,12 @@ export default async function HomePage() {
               {
                 n: '01',
                 title: 'Homeowner lodges a DA at council',
-                body: 'Someone in your service area submits a development application — a renovation, extension, new build, or granny flat. This is a legally lodged document: the project is real and funded.',
+                body: 'Someone in your service area submits a development application — a renovation, extension, new build, or granny flat. This is a legally lodged document: the project is real, planned, and moving through council.',
               },
               {
                 n: '02',
                 title: 'We match it to your account',
-                body: 'Roweo classifies the project type and matches it to your service suburbs, project preferences, and minimum value threshold. Only relevant leads reach you.',
+                body: 'Roweo classifies the project type and matches it to your service suburbs, project preferences, and minimum value threshold. Only relevant leads reach you. Currently covering NSW and ACT — VIC and QLD launching soon.',
               },
               {
                 n: '03',
@@ -196,8 +196,8 @@ export default async function HomePage() {
                 body: 'Every letter has a unique QR code. When the homeowner scans it, you\'re notified instantly. You know exactly who responded, which suburb, and when.',
               },
               {
-                title: 'Flat pricing, predictable ROI',
-                body: 'One fee covers all your letters. Whether you get 20 or 200 matched DAs, your cost stays the same. No surprise bills per letter.',
+                title: 'Monthly allowance, predictable ROI',
+                body: 'Your plan includes a set number of letters per month. Top up with extra packs if you need more. No surprise bills, no per-lead fees.',
               },
               {
                 title: 'Self-serve in 20 minutes',
@@ -238,7 +238,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-bold text-[#1B2A4A] mb-6">Every development application lodged in your area</h2>
             <div className="space-y-5">
               {[
-                { title: 'Updated daily, all states', body: 'NSW, VIC, QLD, ACT, SA, WA and more. Every DA lodged at council flows into Roweo within 24 hours.' },
+                { title: 'Updated daily — NSW and ACT live', body: 'DA data from NSW and ACT government planning portals, ingested daily. Victoria and Queensland launching soon.' },
                 { title: 'Classified by project type', body: 'Extensions, renovations, new dwellings, granny flats, pools. We filter out the projects you don\'t want and surface only the ones you do.' },
                 { title: 'Matched to your suburbs', body: 'Set exactly which suburbs and postcodes you service. We only show you DAs in your work area, at or above your minimum project value.' },
                 { title: 'Automatic — no manual work', body: 'Once set up, Roweo runs itself. New DAs matched → letter generated → posted. You just check your notifications.' },
@@ -290,7 +290,7 @@ export default async function HomePage() {
               <div className="space-y-4">
                 {[
                   'Letter arrives before the homeowner has called anyone',
-                  'One subscription covers all matched DAs — no per-lead fees',
+                  'Monthly letter allowance — extra packs available, no surprise bills',
                   'Know exactly who scanned your letter and when',
                   'Professional branded letter does the selling for you',
                   'ROI dashboard shows revenue generated from each letter',

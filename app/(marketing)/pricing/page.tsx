@@ -3,10 +3,10 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Pricing — DA Leads for Australian Builders from $149/month',
-  description: 'Starter from $149/month. Professional with 20 letters/month from $199/month. Growth with expanded search radius from $249/month. No contracts.',
+  description: 'Starter from $149/month. Professional with 20 letters/month from $249/month. Growth with 50 letters and expanded radius from $349/month. No contracts.',
   openGraph: {
     title: 'Roweo Pricing — from $149/month, no lock-in',
-    description: 'Simple flat pricing. No per-letter fees, no demo call required, no contracts. Cancel any time.',
+    description: 'Simple monthly plans. Letter allowance included, extra packs available, no lock-in contracts. Cancel any time.',
     siteName: 'Roweo',
     type: 'website',
   },
@@ -31,7 +31,7 @@ const PLANS = [
   {
     key: 'professional',
     name: 'Professional',
-    price: 199,
+    price: 249,
     description: 'The plan most builders choose.',
     letters: 20,
     highlighted: true,
@@ -49,15 +49,16 @@ const PLANS = [
   {
     key: 'growth',
     name: 'Growth',
-    price: 249,
+    price: 349,
     description: 'For builders covering multiple suburbs.',
-    letters: 20,
+    letters: 50,
     highlighted: false,
     features: [
       'Everything in Professional',
-      'Expanded search radius (50 km vs 20 km)',
+      '50 personalised letters per month',
+      'Expanded search radius (50 km)',
       'Priority matching on high-value DAs',
-      '20 personalised letters per month included',
+      'Priority support',
     ],
   },
 ]
@@ -74,7 +75,7 @@ export default function PricingPage() {
       <section className="max-w-5xl mx-auto px-6 py-16 text-center">
         <h1 className="text-3xl font-bold text-[#1B2A4A] mb-4">Simple, transparent pricing</h1>
         <p className="text-gray-500 mb-12 max-w-xl mx-auto">
-          No per-letter fees on your subscription. No demo call to see prices. No contracts.
+          Monthly letter allowance included in every paid plan. No demo call to see prices. No contracts.
         </p>
 
         {/* Plans */}
@@ -156,7 +157,7 @@ export default function PricingPage() {
               },
               {
                 q: 'What if I use all my letters before the month is up?',
-                a: 'Buy a letter pack to top up instantly. Packs don\'t expire. You can also upgrade to Growth if you\'re consistently sending more than 20 letters a month.',
+                a: 'Buy a letter pack to top up instantly. Packs don\'t expire. You can also upgrade to Growth if you\'re consistently sending more than 20 letters a month — it includes 50 letters for $349/month.',
               },
               {
                 q: 'Who prints and posts the letters?',
@@ -164,11 +165,11 @@ export default function PricingPage() {
               },
               {
                 q: 'What states do you cover?',
-                a: 'Currently NSW and ACT. Victoria and Queensland are coming in Q4 2026.',
+                a: 'Currently live in NSW and ACT. Victoria and Queensland are launching soon — join the waitlist during signup and we\'ll notify you when your state goes live.',
               },
               {
                 q: 'What\'s the difference between Professional and Growth?',
-                a: 'Growth adds a 50 km search radius (vs 20 km on Professional) and priority matching on high-value DAs. Good for builders covering multiple suburbs or in regional areas with fewer DAs nearby.',
+                a: 'Growth gives you 50 letters per month (vs 20 on Professional), an expanded 50 km search radius, priority matching on high-value DAs, and priority support. Built for builders covering a wide area or running high letter volumes.',
               },
               {
                 q: 'Can I cancel at any time?',
