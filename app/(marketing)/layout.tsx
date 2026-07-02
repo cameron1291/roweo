@@ -15,7 +15,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Logo height={28} />
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-7 text-sm text-gray-500 font-medium">
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-7 text-sm text-gray-500 font-medium">
             <Link href="/#how-it-works" className="hover:text-gray-900 transition-colors">How it works</Link>
             <Link href="/pricing" className="hover:text-gray-900 transition-colors">Pricing</Link>
             <Link href="/about" className="hover:text-gray-900 transition-colors">About</Link>
@@ -31,9 +31,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
               Get started free
             </Link>
             <button
-              className="md:hidden p-2 text-gray-500 hover:text-gray-900"
+              className="md:hidden p-2 text-gray-500 hover:text-gray-900 min-h-[44px] min-w-[44px] flex items-center justify-center"
               onClick={() => setMobileOpen(o => !o)}
-              aria-label="Toggle menu"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -41,24 +43,27 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Mobile nav */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white px-6 py-4 space-y-1">
-            {[
-              { href: '/#how-it-works', label: 'How it works' },
-              { href: '/pricing', label: 'Pricing' },
-              { href: '/about', label: 'About' },
-              { href: '/demo', label: 'Demo' },
-              { href: '/login', label: 'Log in' },
-            ].map(l => (
-              <Link key={l.href} href={l.href} className="block text-sm text-gray-600 py-2.5 border-b border-gray-50 last:border-0" onClick={() => setMobileOpen(false)}>
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        )}
+        <nav
+          id="mobile-nav"
+          aria-label="Mobile navigation"
+          hidden={!mobileOpen}
+          className="md:hidden border-t border-gray-100 bg-white px-6 py-4 space-y-1"
+        >
+          {[
+            { href: '/#how-it-works', label: 'How it works' },
+            { href: '/pricing', label: 'Pricing' },
+            { href: '/about', label: 'About' },
+            { href: '/demo', label: 'Demo' },
+            { href: '/login', label: 'Log in' },
+          ].map(l => (
+            <Link key={l.href} href={l.href} className="block text-sm text-gray-600 py-3 border-b border-gray-50 last:border-0 min-h-[44px] flex items-center" onClick={() => setMobileOpen(false)}>
+              {l.label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
 
       <footer className="bg-[#1B2A4A] text-white py-16">
         <div className="max-w-6xl mx-auto px-6">
@@ -72,7 +77,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 DA data sourced from Australian state planning portals under open government licences.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-10 text-sm">
+            <nav aria-label="Footer navigation" className="grid grid-cols-3 gap-10 text-sm">
               <div>
                 <p className="font-semibold text-white mb-4">Product</p>
                 <div className="space-y-3 text-blue-200/60">
@@ -97,7 +102,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                   <Link href="/legal/spam" className="block hover:text-white transition-colors">Anti-spam</Link>
                 </div>
               </div>
-            </div>
+            </nav>
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-blue-200/30">
             <p>© {new Date().getFullYear()} Roweo Pty Ltd. ABN 31 683 026 924. Built in Australia.</p>

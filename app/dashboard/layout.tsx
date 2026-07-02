@@ -3,16 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { LayoutDashboard, Mail, FileText, Settings, Bell, BellRing, MapPin, LogOut, ExternalLink } from 'lucide-react'
-
-const NAV = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/leads', label: 'Leads', icon: MapPin },
-  { href: '/dashboard/letters', label: 'Letters', icon: Mail },
-  { href: '/dashboard/notifications', label: 'Notifications', icon: BellRing },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-]
+import { LogOut } from 'lucide-react'
+import { DashboardNav } from './dashboard-nav'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -38,23 +30,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <aside className="w-56 border-r border-gray-200 bg-white flex flex-col shrink-0">
+      <aside aria-label="Sidebar" className="w-56 border-r border-gray-200 bg-white flex flex-col shrink-0">
         <div className="h-20 flex items-center px-4 border-b border-gray-200">
           <Logo height={32} />
         </div>
 
-        <nav className="flex-1 py-4 px-2 space-y-0.5">
-          {NAV.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors font-medium"
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <DashboardNav />
 
         <div className="p-4 border-t border-gray-200 space-y-3">
           <div className="flex items-center gap-2">
@@ -98,7 +79,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         )}
 
-        <main className="flex-1 p-6 overflow-auto">
+        <main id="main-content" className="flex-1 p-6 overflow-auto">
           {children}
         </main>
       </div>

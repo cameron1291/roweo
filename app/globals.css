@@ -132,4 +132,19 @@
   html {
     @apply font-sans;
   }
+
+  /* Visible focus ring for keyboard users — hidden for mouse */
+  :focus-visible {
+    outline: 2px solid #3B6FDB;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Ensure tap targets meet 44×44px minimum on touch devices */
+  @media (pointer: coarse) {
+    a, button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
 }
