@@ -36,7 +36,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/pricing`,         lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${base}/demo`,            lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${base}/about`,           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/vs-buildscout`,   lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${base}/legal/privacy`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${base}/legal/terms`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${base}/legal/spam`,      lastModified: now, changeFrequency: 'yearly',  priority: 0.2 },
