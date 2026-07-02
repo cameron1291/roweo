@@ -22,7 +22,7 @@ const TYPE_BADGE: Record<string, string> = {
   granny_flat: 'bg-yellow-500/20 text-yellow-300',
   pool: 'bg-cyan-500/20 text-cyan-300',
   duplex: 'bg-orange-500/20 text-orange-300',
-  other: 'bg-zinc-500/20 text-zinc-400',
+  knockdown_rebuild: 'bg-red-500/20 text-red-300',
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -32,8 +32,7 @@ const TYPE_LABELS: Record<string, string> = {
   granny_flat: 'Granny Flat',
   pool: 'Pool',
   duplex: 'Duplex',
-  demolition: 'Demolition',
-  other: 'Other',
+  knockdown_rebuild: 'Knockdown Rebuild',
 }
 
 const MOCK_DAS = [
@@ -49,17 +48,26 @@ export default async function DemoPage() {
   const supabase = createServiceClient()
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
 
+  const ATTRACTIVE_TYPES = ['extension', 'new_dwelling', 'renovation', 'granny_flat', 'pool', 'duplex', 'knockdown_rebuild']
+
   const [dasResult, countResult] = await Promise.all([
     supabase
       .from('development_applications')
       .select('suburb, state, project_type, description, lodged_date, estimated_value_aud')
-      .in('project_type', ['extension', 'new_dwelling', 'renovation', 'granny_flat', 'pool', 'duplex'])
+      .in('project_type', ATTRACTIVE_TYPES)
+      .in('state', ['NSW', 'ACT'])
+      .not('suburb', 'is', null)
+      .neq('suburb', '')
+      .neq('suburb', '.')
+      .not('description', 'is', null)
+      .neq('description', '')
+      .gt('estimated_value_aud', 50000)
       .order('lodged_date', { ascending: false })
       .limit(6),
     supabase
       .from('development_applications')
       .select('id', { count: 'exact', head: true })
-      .eq('state', 'NSW')
+      .in('state', ['NSW', 'ACT'])
       .gte('lodged_date', thirtyDaysAgo),
   ])
 

@@ -5,7 +5,7 @@ import { createServiceClient } from '@/lib/supabase-server'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Construction Leads for Australian Builders — DA Lead Alerts | Roweo',
+  title: 'Roweo — Development Intelligence for Australian Builders',
   description: 'Get matched to homeowners who have lodged development applications in your area. Roweo sends a professional letter on your behalf and tracks who responds. From $149/month.',
   openGraph: {
     title: 'Your next job is already at council. | Roweo',
@@ -189,7 +189,7 @@ export default async function HomePage() {
               },
               {
                 title: 'DA data means intent is real',
-                body: 'These aren\'t people browsing renovation ideas on Pinterest. A DA is a lodged document with council. The project is funded, planned, and moving forward.',
+                body: 'These aren\'t people browsing renovation ideas on Pinterest. A DA is a lodged document with council. The project is real, planned, and moving through council.',
               },
               {
                 title: 'QR tracking shows you who\'s warm',

@@ -62,7 +62,7 @@ export default function AboutPage() {
             {[
               {
                 title: 'Transparent pricing',
-                body: 'No hidden fees, no per-letter costs, no lock-in. One flat monthly subscription. Cancel any time.',
+                body: 'Monthly letter allowance included in every paid plan. Extra packs available if you need more. No lock-in. Cancel any time.',
               },
               {
                 title: 'Australian-built, Australian-focused',

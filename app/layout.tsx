@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
 
 export const metadata: Metadata = {
-  title: { default: 'Roweo — Construction Leads for Australian Builders', template: '%s | Roweo' },
+  title: { default: 'Roweo — Development Intelligence for Australian Builders', template: '%s | Roweo' },
   description:
     'Get matched to homeowners who have lodged development applications in your area. Roweo sends professional letters on your behalf and tracks who responds. From $149/month.',
   metadataBase: new URL(APP_URL),
@@ -18,13 +18,13 @@ export const metadata: Metadata = {
     locale: 'en_AU',
     url: APP_URL,
     siteName: 'Roweo',
-    title: 'Roweo — Construction Leads for Australian Builders',
+    title: 'Roweo — Development Intelligence for Australian Builders',
     description: 'DA leads for NSW and ACT builders. Professional letters, QR tracking, instant quote requests. From $149/month, no contracts.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Roweo — Construction Leads for Australian Builders' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Roweo — Development Intelligence for Australian Builders' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Roweo — Construction Leads for Australian Builders',
+    title: 'Roweo — Development Intelligence for Australian Builders',
     description: 'DA leads for NSW and ACT builders. Letters, QR tracking, instant notifications. From $149/month.',
     images: ['/og-image.png'],
   },
