@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ForgotPasswordPage() {
+  const searchParams = useSearchParams()
+  const linkExpired = searchParams.get('error') === 'link_expired'
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -42,6 +45,11 @@ export default function ForgotPasswordPage() {
           <CardDescription>
             {submitted ? 'Check your inbox' : 'Reset your password'}
           </CardDescription>
+          {linkExpired && !submitted && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mt-2 text-center">
+              That link has expired. Enter your email to get a new one.
+            </p>
+          )}
         </CardHeader>
 
         {submitted ? (
