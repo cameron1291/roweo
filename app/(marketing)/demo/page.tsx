@@ -348,7 +348,7 @@ export default async function DemoPage() {
                   <div className="px-4 py-4">
                     <div className="flex gap-0.5 mb-3 items-center">
                       {[1,2,3,4,5].map(s => <span key={s} className="text-yellow-400 text-sm">★</span>)}
-                      <span className="text-xs text-gray-500 ml-1.5">4.9 (23 reviews)</span>
+                      <span className="text-xs text-gray-500 ml-1.5">4.9 · example profile</span>
                     </div>
                     <p className="text-xs text-gray-600 mb-3 leading-relaxed">Residential extensions and second storey additions across Parramatta, Blacktown and the Hills District.</p>
                     <div className="space-y-1.5 mb-4">

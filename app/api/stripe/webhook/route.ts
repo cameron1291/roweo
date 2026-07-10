@@ -38,11 +38,8 @@ export async function POST(req: NextRequest) {
           const pack = session.metadata?.pack as keyof typeof LETTER_PACKS | undefined
           if (!pack || !LETTER_PACKS[pack]) break
           const qty = LETTER_PACKS[pack].quantity
-          // Add letters to builder's remaining quota
-          const { data: bp } = await supabase.from('builder_profiles').select('letters_remaining').eq('user_id', userId).single()
-          await supabase.from('builder_profiles').update({
-            letters_remaining: (bp?.letters_remaining ?? 0) + qty,
-          }).eq('user_id', userId)
+          // Atomic increment — avoids race condition if two webhooks fire concurrently
+          await supabase.rpc('add_letters', { p_user_id: userId, p_amount: qty })
           break
         }
 
@@ -121,6 +118,20 @@ export async function POST(req: NextRequest) {
           subscription_status: status,
           ...(resolvedPlan ? { plan: resolvedPlan } : {}),
         }).eq('stripe_subscription_id', sub.id)
+
+        // Log the event for idempotency and audit trail
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('stripe_subscription_id', sub.id)
+          .single()
+        if (updatedProfile) {
+          await supabase.from('subscription_events').insert({
+            user_id: updatedProfile.id,
+            event_type: 'subscription_updated',
+            stripe_event_id: event.id,
+          })
+        }
 
         // Reset monthly letter quota on renewal (new billing period)
         // Detect renewal: current_period_end advanced — only reset if subscription is active
