@@ -60,7 +60,7 @@ export async function createCheckoutSession(userId: string, email: string, plan:
     payment_method_types: ['card'],
     customer_email: email,
     line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
     metadata: { userId, plan },
     subscription_data: { metadata: { userId, plan } },

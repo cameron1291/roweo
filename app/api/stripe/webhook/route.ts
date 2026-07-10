@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStripe, getPlanByPriceId, LETTER_PACKS } from '@/lib/stripe'
+import { getStripe, getPlanByPriceId, LETTER_PACKS, PLANS } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase-server'
 import { sendEmail, ADMIN_EMAIL } from '@/lib/resend'
 import { sendAccountSuspendedEmail, sendAccountReactivatedEmail, sendPaymentFailedEmail } from '@/lib/emails'
@@ -65,6 +65,14 @@ export async function POST(req: NextRequest) {
           plan: resolvedPlan,
         }).eq('id', userId)
 
+        // Initialise letter quota — Professional=20, Growth=50, Starter=0
+        const lettersPerMonth = PLANS[resolvedPlan as keyof typeof PLANS]?.letters_per_month ?? 0
+        await supabase.from('builder_profiles').update({
+          letters_remaining: lettersPerMonth,
+          letters_used_this_month: 0,
+          quota_reset_at: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+        }).eq('user_id', userId)
+
         await supabase.from('subscription_events').insert({
           user_id: userId,
           event_type: isReactivation ? 'reactivated' : 'subscribed',
@@ -113,6 +121,35 @@ export async function POST(req: NextRequest) {
           subscription_status: status,
           ...(resolvedPlan ? { plan: resolvedPlan } : {}),
         }).eq('stripe_subscription_id', sub.id)
+
+        // Reset monthly letter quota on renewal (new billing period)
+        // Detect renewal: current_period_end advanced — only reset if subscription is active
+        if (status === 'active' && resolvedPlan) {
+          const lettersPerMonth = PLANS[resolvedPlan]?.letters_per_month ?? 0
+          if (lettersPerMonth > 0) {
+            const newPeriodEnd = new Date(sub.current_period_end * 1000).toISOString()
+            const { data: profileRow } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('stripe_subscription_id', sub.id)
+              .single()
+            if (profileRow) {
+              const { data: bp } = await supabase
+                .from('builder_profiles')
+                .select('quota_reset_at')
+                .eq('user_id', profileRow.id)
+                .single()
+              // Only reset if this is a new billing period (not just a plan change mid-cycle)
+              if (!bp?.quota_reset_at || new Date(bp.quota_reset_at) < new Date(sub.current_period_end * 1000)) {
+                await supabase.from('builder_profiles').update({
+                  letters_remaining: lettersPerMonth,
+                  letters_used_this_month: 0,
+                  quota_reset_at: newPeriodEnd,
+                }).eq('user_id', profileRow.id)
+              }
+            }
+          }
+        }
         break
       }
 
