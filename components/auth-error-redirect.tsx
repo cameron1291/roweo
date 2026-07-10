@@ -28,9 +28,10 @@ export function AuthErrorRedirect() {
       return
     }
 
-    // PKCE code landed on homepage instead of /auth/callback — forward it
+    // PKCE code landed on homepage instead of /auth/callback — forward it.
+    // Must use window.location (not router) to trigger the server route handler.
     if (code) {
-      router.replace(`/auth/callback?code=${code}&next=/reset-password`)
+      window.location.replace(`/auth/callback?code=${code}&next=/reset-password`)
     }
   }, [params, router])
 
