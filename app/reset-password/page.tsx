@@ -28,21 +28,17 @@ function ResetPasswordForm() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
     const code = params.get('code')
 
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setError('This link has expired or already been used. Please request a new one.')
-        } else {
-          setReady(true)
-        }
-      })
+      // Hand off to the server-side callback so @supabase/ssr writes the
+      // session cookies correctly, then it redirects back here without the code.
+      window.location.replace(`/auth/callback?code=${encodeURIComponent(code)}&next=/reset-password`)
       return
     }
 
-    // No code — check for an existing session (implicit flow / prior exchange)
+    // No code — session should already be in cookies from the callback redirect.
+    const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
