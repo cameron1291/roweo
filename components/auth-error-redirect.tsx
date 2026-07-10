@@ -8,6 +8,16 @@ export function AuthErrorRedirect() {
   const params = useSearchParams()
 
   useEffect(() => {
+    // Implicit-flow recovery: Supabase puts the token in the hash fragment.
+    // The Supabase client parses #access_token automatically, but only if the
+    // user is on the right page. Forward to /reset-password with the hash so
+    // onAuthStateChange fires PASSWORD_RECOVERY there.
+    const hash = window.location.hash
+    if (hash.includes('access_token') && hash.includes('type=recovery')) {
+      window.location.replace('/reset-password' + hash)
+      return
+    }
+
     const error = params.get('error')
     const errorCode = params.get('error_code')
     const code = params.get('code')
@@ -18,9 +28,7 @@ export function AuthErrorRedirect() {
       return
     }
 
-    // Supabase fell back to the Site URL instead of /auth/callback (redirect URL
-    // not in the Supabase allowed list). Forward the code to the callback route
-    // so it gets properly exchanged for a session.
+    // PKCE code landed on homepage instead of /auth/callback — forward it
     if (code) {
       router.replace(`/auth/callback?code=${code}&next=/reset-password`)
     }
