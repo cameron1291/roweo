@@ -45,7 +45,7 @@ export default function LoginPage() {
           </h2>
           <div className="space-y-5">
             {[
-              { icon: '📬', title: 'Letters posted automatically', body: 'Every matched DA triggers a letter to the homeowner within 2 business days.' },
+              { icon: '📬', title: 'Letters posted automatically', body: 'Matched DAs trigger a personalised letter to the homeowner within 2 business days (Professional and Growth plans).' },
               { icon: '📱', title: 'Instant scan notifications', body: 'Know the moment a homeowner picks up your letter and scans the QR code.' },
               { icon: '📊', title: 'See your ROI', body: 'Track enquiries, quotes, and jobs won directly against each letter campaign.' },
               { icon: '🏙️', title: 'NSW & ACT live now', body: 'Daily DA data from government planning portals. VIC and QLD launching soon.' },
@@ -130,7 +130,7 @@ export default function LoginPage() {
             <p className="text-sm text-gray-500">
               No account yet?{' '}
               <Link href="/signup" className="text-[#1B2A4A] font-medium hover:underline">
-                Start free
+                Create account
               </Link>
             </p>
           </div>

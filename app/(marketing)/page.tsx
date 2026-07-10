@@ -83,13 +83,13 @@ export default async function HomePage() {
                 href="/signup"
                 className="bg-white hover:bg-blue-50 text-[#1B2A4A] font-bold px-8 py-4 rounded-lg transition-colors text-base shadow-lg"
               >
-                Start from $149/month
+                Get started — letters from $249/month
               </Link>
               <Link
                 href="/demo"
                 className="text-white hover:text-blue-200 border border-white/30 hover:border-white/50 px-8 py-4 rounded-lg transition-colors text-base font-medium"
               >
-                See live demo →
+                See how it works →
               </Link>
             </div>
 
@@ -147,7 +147,7 @@ export default async function HomePage() {
               {
                 n: '04',
                 title: 'You find out who\'s interested',
-                body: 'Every letter has a unique QR code. When the homeowner scans it, you get an instant notification. They land on your profile page and can request a quote in under 2 minutes.',
+                body: 'Every letter has a unique QR code. When it\'s scanned, you get an instant notification. The recipient lands on your profile page and can request a quote in under 2 minutes.',
               },
             ].map(step => (
               <div key={step.n} className="flex gap-5">
@@ -173,8 +173,8 @@ export default async function HomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1B2A4A]/70 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6">
-              <p className="text-white font-semibold text-lg">First builder to the door wins the quote.</p>
-              <p className="text-blue-200/70 text-sm mt-1">Roweo gets you there before your competitors even know the job exists.</p>
+              <p className="text-white font-semibold text-lg">Getting there first puts you ahead of the competition.</p>
+              <p className="text-blue-200/70 text-sm mt-1">Roweo gets you in front of homeowners before your competitors even know the job exists.</p>
             </div>
           </div>
         </div>
@@ -255,7 +255,7 @@ export default async function HomePage() {
                 { title: 'Updated daily — NSW and ACT live', body: 'DA data from NSW and ACT government planning portals, ingested daily. Victoria and Queensland launching soon.' },
                 { title: 'Classified by project type', body: 'Extensions, renovations, new dwellings, granny flats, pools. We filter out the projects you don\'t want and surface only the ones you do.' },
                 { title: 'Matched to your suburbs', body: 'Set exactly which suburbs and postcodes you service. We only show you DAs in your work area, at or above your minimum project value.' },
-                { title: 'Automatic — no manual work', body: 'Once set up, Roweo runs itself. New DAs matched → letter generated → posted. You just check your notifications.' },
+                { title: 'Automatic — no manual work', body: 'Once set up, Roweo runs itself. New DAs matched → letter generated → posted, up to your monthly plan allowance. You just check your notifications.' },
               ].map(f => (
                 <div key={f.title} className="flex gap-3">
                   <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
@@ -341,7 +341,7 @@ export default async function HomePage() {
             href="/signup"
             className="inline-block mt-10 bg-white hover:bg-blue-50 text-[#1B2A4A] font-bold px-10 py-4 rounded-lg transition-colors text-lg shadow-xl"
           >
-            Get started from $149/month
+            Get started — letters from $249/month
           </Link>
           <p className="text-sm text-blue-200/40 mt-4">No contracts. Cancel any time.</p>
         </div>

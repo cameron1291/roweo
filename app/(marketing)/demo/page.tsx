@@ -307,7 +307,7 @@ export default async function DemoPage() {
                 { title: 'Personalised to the DA type', body: 'Extension DA? The letter mentions extensions. Granny flat? Same again. Not a generic form letter.' },
                 { title: 'Unique QR code tracked to you', body: 'Every letter has a unique QR. When the homeowner scans it, you get notified immediately.' },
                 { title: 'Posted within 2 business days', body: 'We handle printing, folding, stuffing, stamping, and Australia Post. You approve once — done.' },
-                { title: 'Compliance built in', body: 'Includes the council non-affiliation disclaimer required under Australian Consumer Law.' },
+                { title: 'Compliance built in', body: 'Includes a clear council non-affiliation statement and sender identification on every letter.' },
               ].map(item => (
                 <div key={item.title} className="flex gap-3">
                   <span className="text-[#1B2A4A] font-bold text-lg shrink-0 leading-none mt-0.5">✓</span>
@@ -401,8 +401,8 @@ export default async function DemoPage() {
           <div className="flex items-start gap-4 mb-8">
             <span className="shrink-0 w-8 h-8 rounded-full bg-[#1B2A4A] text-white text-sm font-bold flex items-center justify-center">4</span>
             <div>
-              <h2 className="text-xl font-bold text-[#1B2A4A]">You are notified the moment they scan</h2>
-              <p className="text-gray-500 mt-1 text-sm">An email hits your inbox within seconds. First builder to call a homeowner after they express interest wins more often than not.</p>
+              <h2 className="text-xl font-bold text-[#1B2A4A]">You are notified the moment your QR code is scanned</h2>
+              <p className="text-gray-500 mt-1 text-sm">An email hits your inbox within seconds of a scan. Following up quickly while you are still front of mind gives you a clear advantage.</p>
             </div>
           </div>
 
@@ -428,7 +428,7 @@ export default async function DemoPage() {
                       <p><span className="text-gray-400">Time on page:</span> 2 min 14 sec</p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-4">This homeowner spent over 2 minutes on your profile page and scrolled to the bottom. They know who you are — now is the time to follow up.</p>
+                  <p className="text-sm text-gray-600 mb-4">Someone scanned your letter and spent over 2 minutes on your profile page — now is the time to follow up.</p>
                   <div className="bg-[#1B2A4A] text-white text-sm font-semibold text-center py-3 rounded-lg cursor-pointer">
                     View their quote request →
                   </div>
@@ -467,7 +467,7 @@ export default async function DemoPage() {
           <div className="bg-zinc-900 rounded-xl border border-white/10 overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
               <p className="text-white font-semibold">ROI Tracker — last 90 days</p>
-              <span className="text-xs text-zinc-500">Bayside Building Co.</span>
+              <span className="text-xs text-zinc-500 italic">Illustrative example only</span>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">

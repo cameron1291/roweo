@@ -129,7 +129,7 @@ export default function SignupPage() {
             {[
               { icon: '📍', title: 'Set your suburbs', body: 'Choose exactly which suburbs and project types you want to cover.' },
               { icon: '✉️', title: 'Preview your branded letter', body: 'See exactly what homeowners will receive — your logo, your number, your message.' },
-              { icon: '📬', title: 'Letters posted within 2 days', body: 'Every matched DA gets a letter in the post. You do nothing after setup.' },
+              { icon: '📬', title: 'Letters posted within 2 days', body: 'Matched DAs get a personalised letter posted to the homeowner (Professional and Growth plans). You do nothing after setup.' },
               { icon: '📱', title: 'Get notified when they scan', body: 'Instant email when a homeowner scans your QR code. Be first to follow up.' },
             ].map(item => (
               <div key={item.title} className="flex gap-3">
@@ -145,16 +145,8 @@ export default function SignupPage() {
 
         <div className="border-t border-white/10 pt-6">
           <p className="text-xs text-blue-300/60 leading-relaxed">
-            Currently live in NSW and ACT. From $149/month. No contract.
+            Currently live in NSW and ACT. DA intelligence from $149/month. Letters from $249/month. No contract.
           </p>
-          <div className="flex items-center gap-3 mt-4">
-            <div className="flex -space-x-2">
-              {['BB', 'JP', 'KR'].map(i => (
-                <div key={i} className="w-7 h-7 rounded-full bg-blue-500/30 border-2 border-[#1B2A4A] flex items-center justify-center text-[9px] font-bold text-blue-200">{i}</div>
-              ))}
-            </div>
-            <p className="text-xs text-blue-200/60">Builders already finding leads with Roweo</p>
-          </div>
         </div>
       </div>
 
