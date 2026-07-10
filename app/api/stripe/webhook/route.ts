@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         await supabase.from('builder_profiles').update({
           letters_remaining: lettersPerMonth,
           letters_used_this_month: 0,
-          quota_reset_at: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+          quota_reset_at: new Date((stripeSubscription.items.data[0]?.current_period_end ?? 0) * 1000).toISOString(),
         }).eq('user_id', userId)
 
         await supabase.from('subscription_events').insert({
@@ -138,7 +138,8 @@ export async function POST(req: NextRequest) {
         if (status === 'active' && resolvedPlan) {
           const lettersPerMonth = PLANS[resolvedPlan]?.letters_per_month ?? 0
           if (lettersPerMonth > 0) {
-            const newPeriodEnd = new Date(sub.current_period_end * 1000).toISOString()
+            const subPeriodEnd = sub.items.data[0]?.current_period_end ?? 0
+            const newPeriodEnd = new Date(subPeriodEnd * 1000).toISOString()
             const { data: profileRow } = await supabase
               .from('profiles')
               .select('id')
@@ -151,7 +152,7 @@ export async function POST(req: NextRequest) {
                 .eq('user_id', profileRow.id)
                 .single()
               // Only reset if this is a new billing period (not just a plan change mid-cycle)
-              if (!bp?.quota_reset_at || new Date(bp.quota_reset_at) < new Date(sub.current_period_end * 1000)) {
+              if (!bp?.quota_reset_at || new Date(bp.quota_reset_at) < new Date(subPeriodEnd * 1000)) {
                 await supabase.from('builder_profiles').update({
                   letters_remaining: lettersPerMonth,
                   letters_used_this_month: 0,
