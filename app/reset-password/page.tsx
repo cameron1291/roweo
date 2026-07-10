@@ -31,14 +31,18 @@ function ResetPasswordForm() {
     const code = params.get('code')
 
     if (code) {
-      // Hand off to the server-side callback so @supabase/ssr writes the
-      // session cookies correctly, then it redirects back here without the code.
-      window.location.replace(`/auth/callback?code=${encodeURIComponent(code)}&next=/reset-password`)
+      // Forward to server-side callback which exchanges the code and sets the
+      // session cookie on the redirect response (the only reliable pattern with
+      // @supabase/ssr — client-side exchange doesn't write cookies into responses).
+      window.location.replace(
+        `/auth/callback?code=${encodeURIComponent(code)}&next=/reset-password`
+      )
       return
     }
 
-    // No code — session should already be in cookies from the callback redirect.
+    // No code — the callback already set the session cookie and redirected here.
     const supabase = createClient()
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
@@ -46,6 +50,7 @@ function ResetPasswordForm() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
     })
+
     return () => subscription.unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -109,7 +114,7 @@ function ResetPasswordForm() {
             )}
             {!ready && (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
-                Verifying your reset link… if this takes more than a few seconds, try clicking the link in your email again.
+                Verifying your reset link…
               </p>
             )}
             <div className="space-y-1.5">
