@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,16 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordForm />
+    </Suspense>
+  )
+}
+
+function ResetPasswordForm() {
   const router = useRouter()
+  const params = useSearchParams()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,22 +29,32 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient()
+    const code = params.get('code')
 
-    // If the callback route already exchanged the code server-side, there's
-    // already an active session when this page mounts — enable the form immediately
+    if (code) {
+      // PKCE flow: exchange the code for a session directly on this page
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setError('This link has expired or already been used. Please request a new one.')
+        } else {
+          setReady(true)
+          // Remove the code from the URL without navigating
+          window.history.replaceState({}, '', '/reset-password')
+        }
+      })
+      return
+    }
+
+    // No code in URL — check for an existing session (implicit flow or prior exchange)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
 
-    // Fallback: catch PASSWORD_RECOVERY if the token is exchanged client-side
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setReady(true)
-      }
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
     })
-
     return () => subscription.unsubscribe()
-  }, [])
+  }, [params])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
