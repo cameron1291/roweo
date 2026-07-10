@@ -11,15 +11,17 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.user) {
-      // Send welcome email to brand-new signups (no profile yet means first login)
-      const serviceClient = createServiceClient()
-      const { data: profile } = await serviceClient
-        .from('profiles')
-        .select('onboarding_completed, email')
-        .eq('id', data.user.id)
-        .single()
-      if (profile && !profile.onboarding_completed && profile.email) {
-        sendWelcomeEmail(profile.email).catch(() => {})
+      // Don't send welcome email on password recovery flows
+      if (next !== '/reset-password') {
+        const serviceClient = createServiceClient()
+        const { data: profile } = await serviceClient
+          .from('profiles')
+          .select('onboarding_completed, email')
+          .eq('id', data.user.id)
+          .single()
+        if (profile && !profile.onboarding_completed && profile.email) {
+          sendWelcomeEmail(profile.email).catch(() => {})
+        }
       }
       return NextResponse.redirect(`${origin}${next}`)
     }
