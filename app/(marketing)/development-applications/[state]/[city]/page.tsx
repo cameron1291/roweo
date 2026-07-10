@@ -90,8 +90,24 @@ export default async function DevelopmentApplicationsCityPage({ params }: Props)
   const daCount = countResult.count ?? 0
   const suburbs = suburbsResult.data ?? []
 
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: `Development Applications ${cityName}, ${stateName}`,
+    description: `Browse development applications lodged across ${cityName}, ${stateName}. Real DA data updated daily from Australian government planning portals.`,
+    url: `https://roweo.com.au/development-applications/${state}/${city}`,
+    isPartOf: { '@type': 'WebSite', name: 'Roweo', url: 'https://roweo.com.au' },
+    about: {
+      '@type': 'Service',
+      name: 'DA Lead Matching for Builders',
+      provider: { '@type': 'Organization', name: 'Roweo', url: 'https://roweo.com.au' },
+      areaServed: `${cityName}, ${stateName}, Australia`,
+    },
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400 flex items-center gap-1.5">

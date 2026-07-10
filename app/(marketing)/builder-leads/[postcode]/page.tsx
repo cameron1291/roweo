@@ -67,8 +67,18 @@ export default async function PostcodeLeadsPage({ params }: Props) {
   const state = postcodeData.state
   const citySlug = state === 'NSW' ? 'sydney' : state === 'VIC' ? 'melbourne' : state === 'QLD' ? 'brisbane' : state === 'ACT' ? 'canberra' : state.toLowerCase()
 
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: `Builder Leads Postcode ${postcode}`,
+    description: `Development applications lodged in postcode ${postcode}. Roweo matches residential builders to homeowners planning construction and posts letters on your behalf.`,
+    url: `https://roweo.com.au/builder-leads/${postcode}`,
+    isPartOf: { '@type': 'WebSite', name: 'Roweo', url: 'https://roweo.com.au' },
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       {/* Breadcrumb */}
       <div className="bg-gray-50 border-b border-gray-100 py-3">
         <nav className="max-w-5xl mx-auto px-6 text-xs text-gray-400">

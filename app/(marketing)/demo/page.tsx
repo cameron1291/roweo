@@ -44,6 +44,21 @@ const MOCK_DAS = [
   { suburb: 'Blacktown', state: 'NSW', project_type: 'pool', description: 'Construction of in-ground swimming pool, decking, fencing and associated landscaping', lodged_date: '2026-06-29', estimated_value_aud: 72000 },
 ]
 
+const softwareSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Roweo',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'Web',
+  url: 'https://roweo.com.au',
+  description: 'DA-matched construction lead generation for Australian residential builders. Monitors planning portals, posts branded letters, and tracks homeowner responses via QR code.',
+  offers: [
+    { '@type': 'Offer', name: 'Professional', price: '249', priceCurrency: 'AUD', billingIncrement: 'P1M' },
+    { '@type': 'Offer', name: 'Growth', price: '349', priceCurrency: 'AUD', billingIncrement: 'P1M' },
+  ],
+  areaServed: 'Australia',
+}
+
 export default async function DemoPage() {
   const supabase = createServiceClient()
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0]
@@ -77,6 +92,7 @@ export default async function DemoPage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
       {/* Hero */}
       <section className="bg-white pt-16 pb-12 text-center px-6">
         <p className="text-sm font-medium text-[#1B2A4A] mb-4 tracking-wide uppercase">How it works</p>

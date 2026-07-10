@@ -82,7 +82,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
                 <p className="font-semibold text-white mb-4">Product</p>
                 <div className="space-y-3 text-blue-200/60">
                   <Link href="/#how-it-works" className="block hover:text-white transition-colors">How it works</Link>
-                  <Link href="/demo" className="block hover:text-white transition-colors">Live demo</Link>
+                  <Link href="/demo" className="block hover:text-white transition-colors">How it works</Link>
                   <Link href="/pricing" className="block hover:text-white transition-colors">Pricing</Link>
                 </div>
               </div>

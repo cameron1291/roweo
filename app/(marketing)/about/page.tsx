@@ -12,9 +12,24 @@ export const metadata = {
   },
 }
 
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Roweo',
+  url: 'https://roweo.com.au',
+  description: 'DA-matched construction leads for Australian residential builders. Letters posted to homeowners within 2 business days of a development application being lodged.',
+  areaServed: [
+    { '@type': 'State', name: 'New South Wales' },
+    { '@type': 'State', name: 'Australian Capital Territory' },
+  ],
+  serviceType: 'Construction Lead Generation',
+  contactPoint: { '@type': 'ContactPoint', email: 'hello@roweo.com.au', contactType: 'customer support' },
+}
+
 export default function AboutPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
       {/* Hero */}
       <section className="relative overflow-hidden py-24 bg-[#1B2A4A]">
         <Image
@@ -62,7 +77,7 @@ export default function AboutPage() {
             {[
               {
                 title: 'Transparent pricing',
-                body: 'Monthly letter allowance included in every paid plan. Extra packs available if you need more. No lock-in. Cancel any time.',
+                body: 'Letters included with Professional and Growth plans. Extra packs available if you need more. No lock-in. Cancel any time.',
               },
               {
                 title: 'Australian-built, Australian-focused',
@@ -88,7 +103,7 @@ export default function AboutPage() {
         <p className="text-gray-500 mb-8">Set up takes 20 minutes. First lead within 24 hours.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/signup" className="bg-[#1B2A4A] hover:bg-[#243660] text-white font-semibold px-8 py-3.5 rounded-lg transition-colors">
-            Get started from $149/month
+            Get started — letters from $249/month
           </Link>
           <Link href="/demo" className="border border-gray-200 hover:border-gray-300 text-gray-700 font-medium px-8 py-3.5 rounded-lg transition-colors">
             See the demo →
