@@ -32,20 +32,17 @@ function ResetPasswordForm() {
     const code = params.get('code')
 
     if (code) {
-      // PKCE flow: exchange the code for a session directly on this page
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) {
           setError('This link has expired or already been used. Please request a new one.')
         } else {
           setReady(true)
-          // Remove the code from the URL without navigating
-          window.history.replaceState({}, '', '/reset-password')
         }
       })
       return
     }
 
-    // No code in URL — check for an existing session (implicit flow or prior exchange)
+    // No code — check for an existing session (implicit flow / prior exchange)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
@@ -54,7 +51,8 @@ function ResetPasswordForm() {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
     })
     return () => subscription.unsubscribe()
-  }, [params])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
