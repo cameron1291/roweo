@@ -8,11 +8,20 @@ export function AuthErrorRedirect() {
   const params = useSearchParams()
 
   useEffect(() => {
-    // Implicit-flow recovery: Supabase puts the token in the hash fragment.
-    // The Supabase client parses #access_token automatically, but only if the
-    // user is on the right page. Forward to /reset-password with the hash so
-    // onAuthStateChange fires PASSWORD_RECOVERY there.
     const hash = window.location.hash
+
+    // Parse hash fragment params (Supabase sometimes puts tokens/errors there)
+    const hashParams = new URLSearchParams(hash.replace(/^#/, ''))
+    const hashError = hashParams.get('error')
+    const hashErrorCode = hashParams.get('error_code')
+
+    // Expired/invalid link error in hash
+    if (hashError === 'access_denied' || hashErrorCode === 'otp_expired') {
+      router.replace('/forgot-password?error=link_expired')
+      return
+    }
+
+    // Implicit-flow recovery token in hash — forward to reset-password
     if (hash.includes('access_token') && hash.includes('type=recovery')) {
       window.location.replace('/reset-password' + hash)
       return
@@ -22,14 +31,13 @@ export function AuthErrorRedirect() {
     const errorCode = params.get('error_code')
     const code = params.get('code')
 
-    // Expired or invalid link — send to forgot-password with a helpful message
+    // Expired/invalid link error in query params
     if (error === 'access_denied' || errorCode === 'otp_expired') {
       router.replace('/forgot-password?error=link_expired')
       return
     }
 
-    // PKCE code landed on homepage — forward to reset-password which now
-    // handles the client-side code exchange directly.
+    // PKCE code on homepage — forward to reset-password
     if (code) {
       window.location.replace(`/reset-password?code=${code}`)
     }
