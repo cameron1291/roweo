@@ -9,13 +9,20 @@ export function AuthErrorRedirect() {
 
   useEffect(() => {
     const error = params.get('error')
-    const code = params.get('error_code')
-    if (!error) return
+    const errorCode = params.get('error_code')
+    const code = params.get('code')
 
-    // Supabase lands expired/invalid auth links on the Site URL with these params.
-    // Redirect to a page that can show a helpful message instead.
-    if (code === 'otp_expired' || error === 'access_denied') {
+    // Expired or invalid link — send to forgot-password with a helpful message
+    if (error === 'access_denied' || errorCode === 'otp_expired') {
       router.replace('/forgot-password?error=link_expired')
+      return
+    }
+
+    // Supabase fell back to the Site URL instead of /auth/callback (redirect URL
+    // not in the Supabase allowed list). Forward the code to the callback route
+    // so it gets properly exchanged for a session.
+    if (code) {
+      router.replace(`/auth/callback?code=${code}&next=/reset-password`)
     }
   }, [params, router])
 
