@@ -2,6 +2,7 @@ import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import { createElement, type ReactElement } from 'react'
 import QRCode from 'qrcode'
 import { LetterDocument, type LetterProps } from './letter-document'
+import type { AcquisitionLetterProps } from './acquisition-letter-document'
 
 export async function generateLetterPdf(props: LetterProps): Promise<Buffer> {
   // Generate QR code as base64 PNG (embeddable in react-pdf <Image>)
@@ -49,6 +50,39 @@ export async function generateBatchPdf(letters: LetterProps[]): Promise<Buffer> 
     {},
     ...withQr.map((props, i) =>
       createElement(LetterPage, { ...props, key: i })
+    )
+  ) as ReactElement<DocumentProps>
+
+  const buffer = await renderToBuffer(element)
+  return Buffer.from(buffer)
+}
+
+// Generate a multi-page batch PDF of acquisition letters (one per prospect)
+export async function generateAcquisitionBatchPdf(letters: AcquisitionLetterProps[]): Promise<Buffer> {
+  const { Document } = await import('@react-pdf/renderer')
+  const { AcquisitionLetterPage } = await import('./acquisition-letter-document')
+
+  const withQr = await Promise.all(
+    letters.map(async (props) => {
+      if (props.demoUrl && !props.qrCodeDataUrl) {
+        try {
+          return {
+            ...props,
+            qrCodeDataUrl: await QRCode.toDataURL(props.demoUrl, {
+              width: 200, margin: 1, color: { dark: '#1B2A4A', light: '#FFFFFF' },
+            }),
+          }
+        } catch { /* skip QR on failure */ }
+      }
+      return props
+    })
+  )
+
+  const element = createElement(
+    Document,
+    {},
+    ...withQr.map((props, i) =>
+      createElement(AcquisitionLetterPage, { key: i, props })
     )
   ) as ReactElement<DocumentProps>
 

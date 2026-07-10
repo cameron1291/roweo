@@ -15,13 +15,14 @@ export default async function ProspectsPage({
   const params = await searchParams
   const supabase = createServiceClient()
   const page = parseInt(params.page ?? '1')
-  const pageSize = 50
+  const pageSize = 100
   const offset = (page - 1) * pageSize
 
   let query = supabase
     .from('builder_prospects')
-    .select('id, company_name, website, email, phone, business_type, fit_score, status, letter_generated_at, letter_posted_at, interactive_email_sent_at, phone_call_at, phone_outcome, interactive_letter_viewed_at, created_at', { count: 'exact' })
-    .order('fit_score', { ascending: false })
+    .select('id, company_name, website, email, phone, postal_address, employee_count_est, business_type, completeness_score, status, letter_generated_at, letter_posted_at, interactive_email_sent_at, phone_call_at, phone_outcome, interactive_letter_viewed_at, created_at', { count: 'exact' })
+    .not('postal_address', 'is', null)
+    .order('completeness_score', { ascending: false })
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
 

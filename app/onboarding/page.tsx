@@ -115,6 +115,16 @@ export default function OnboardingPage() {
 
   // ── Logo upload ──
   async function handleLogoUpload(file: File) {
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('Logo must be PNG, JPG, or WebP.')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Logo must be under 2 MB.')
+      return
+    }
+    setError('')
     setLogoUploading(true)
     const ext = file.name.split('.').pop() ?? 'png'
     const res = await fetch(`/api/builder/logo-upload-url?ext=${ext}`)
@@ -122,6 +132,10 @@ export default function OnboardingPage() {
     await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
     set('logo_url', publicUrl)
     setLogoUploading(false)
+  }
+
+  function isValidHex(color: string) {
+    return /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(color)
   }
 
   // ── Save profile (called before step 6 preview) ──
@@ -183,11 +197,19 @@ export default function OnboardingPage() {
   // ── Validation ──
   function canProceed() {
     switch (step) {
-      case 1: return form.company_name.trim().length > 0
+      case 1:
+        return (
+          form.company_name.trim().length > 0 &&
+          form.phone.trim().length > 0 &&
+          form.license_number.trim().length > 0
+        )
       case 2: return form.service_suburbs.length > 0
       case 3: return form.project_types.length > 0
-      case 4: return true
-      case 5: return true
+      case 4:
+        if (form.min_value_aud < 0) return false
+        if (form.max_value_aud !== null && form.max_value_aud <= form.min_value_aud) return false
+        return true
+      case 5: return isValidHex(form.brand_color)
       default: return false
     }
   }
@@ -231,7 +253,7 @@ export default function OnboardingPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Phone</Label>
+                  <Label>Phone *</Label>
                   <Input placeholder="02 9123 4567" value={form.phone} onChange={e => set('phone', e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
@@ -240,7 +262,7 @@ export default function OnboardingPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label>Builder licence number</Label>
+                <Label>Builder licence number *</Label>
                 <Input placeholder="NSW BL 123456" value={form.license_number} onChange={e => set('license_number', e.target.value)} />
               </div>
             </div>
@@ -395,6 +417,9 @@ export default function OnboardingPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-500">Leave blank to receive all DAs above your minimum.</p>
+                {form.max_value_aud !== null && form.max_value_aud <= form.min_value_aud && (
+                  <p className="text-xs text-red-500">Maximum must be greater than minimum.</p>
+                )}
               </div>
             </div>
           )}
@@ -451,7 +476,7 @@ export default function OnboardingPage() {
                       value={form.brand_color}
                       onChange={e => set('brand_color', e.target.value)}
                       placeholder="#3B6FDB"
-                      className="font-mono text-sm"
+                      className={`font-mono text-sm ${form.brand_color && !isValidHex(form.brand_color) ? 'border-red-400 focus:border-red-400' : ''}`}
                     />
                   </div>
                 </div>

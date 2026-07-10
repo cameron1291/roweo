@@ -225,43 +225,15 @@ def scrape_query(driver, query: str, max_results: int = 30) -> list[dict]:
     return results
 
 
-def insert_prospects(prospects: list[dict]) -> dict:
-    supabase = _get_client()
-    inserted = 0
-    skipped = 0
-
-    for p in prospects:
-        if not p.get('company_name'):
-            skipped += 1
-            continue
-
-        existing = supabase.table('builder_prospects') \
-            .select('id') \
-            .ilike('company_name', p['company_name']) \
-            .limit(1) \
-            .execute()
-
-        if existing.data:
-            skipped += 1
-            continue
-
-        demo_slug = re.sub(r'[^a-z0-9]+', '-', p['company_name'].lower()).strip('-')[:40]
-        demo_slug = demo_slug + '-' + os.urandom(3).hex()
-
-        supabase.table('builder_prospects').insert({
-            **{k: v for k, v in p.items() if v is not None},
-            'status': 'scraped',
-            'demo_slug': demo_slug,
-            'qr_token': str(uuid.uuid4()),
-            'created_at': datetime.now(timezone.utc).isoformat(),
-            'updated_at': datetime.now(timezone.utc).isoformat(),
-        }).execute()
-        inserted += 1
-
-    return {'inserted': inserted, 'skipped': skipped}
-
-
 def run(queries: list[str], max_per_query: int = 30):
+    from acquisition.enricher import enrich_new_candidate
+
+    supabase = _get_client()
+    log.info('Loading existing prospect names...')
+    resp = supabase.table('builder_prospects').select('company_name').limit(5000).execute()
+    existing_lower = {r['company_name'].lower() for r in (resp.data or [])}
+    log.info(f'  {len(existing_lower)} existing prospects loaded')
+
     log.info(f"Starting Google Maps scraper — {len(queries)} queries")
     driver = _make_driver()
     all_prospects = []
@@ -274,10 +246,41 @@ def run(queries: list[str], max_per_query: int = 30):
     finally:
         driver.quit()
 
-    log.info(f"Total scraped: {len(all_prospects)}")
-    result = insert_prospects(all_prospects)
-    log.info(f"Done — inserted: {result['inserted']}, skipped (dup): {result['skipped']}")
-    return result
+    log.info(f"Total scraped: {len(all_prospects)} — now enriching...")
+    inserted = 0
+    skipped = 0
+
+    for p in all_prospects:
+        if not p.get('company_name'):
+            skipped += 1
+            continue
+        if p['company_name'].lower() in existing_lower:
+            skipped += 1
+            continue
+
+        # Google Maps gives us a full address directly — pass it through enricher
+        # which validates it with _is_full_address() and also scrapes the website
+        # for email, owner_name, business_type, etc.
+        candidate = {
+            'company_name': p['company_name'],
+            'website': p.get('website'),
+            'phone': p.get('phone'),
+            'postal_address': p.get('postal_address'),  # may already be a full street address
+            'source': 'google_maps',
+        }
+        ok = enrich_new_candidate(supabase, candidate, existing_lower)
+        if ok:
+            existing_lower.add(p['company_name'].lower())
+            inserted += 1
+            if inserted % 10 == 0:
+                log.info(f'  ...{inserted} inserted')
+        else:
+            skipped += 1
+
+        time.sleep(1.0)
+
+    log.info(f"Done — inserted: {inserted}, skipped: {skipped}")
+    return {'inserted': inserted, 'skipped': skipped}
 
 
 if __name__ == '__main__':

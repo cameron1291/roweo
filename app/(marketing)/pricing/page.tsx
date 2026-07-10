@@ -113,7 +113,7 @@ export default function PricingPage() {
       <section className="max-w-5xl mx-auto px-6 py-16 text-center">
         <h1 className="text-3xl font-bold text-[#1B2A4A] mb-4">Simple, transparent pricing</h1>
         <p className="text-gray-500 mb-12 max-w-xl mx-auto">
-          Monthly letter allowance included in every paid plan. No demo call to see prices. No contracts.
+          Letters included from Professional onwards. No demo call to see prices. No contracts.
         </p>
 
         {/* Plans */}

@@ -35,6 +35,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-AU">
       <head>
+        <link rel="alternate" href="https://www.roweo.com.au" hrefLang="en-AU" />
+        <link rel="alternate" href="https://www.roweo.com.au" hrefLang="x-default" />
         <link rel="preconnect" href="https://bibfvkjodmaufdgtrmjx.supabase.co" />
         <link rel="preconnect" href="https://js.stripe.com" />
       </head>

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Loader2, Mail, CheckSquare, Square } from 'lucide-react'
+import { Loader2, Mail, CheckSquare, Square, Printer, Wand2 } from 'lucide-react'
 
 const STATUS_STYLES: Record<string, string> = {
   scraped: 'bg-gray-100 text-gray-500',
@@ -23,8 +23,9 @@ const OUTCOME_STYLES: Record<string, string> = {
   demo_booked: 'bg-emerald-50 text-emerald-600',
 }
 
-function fitBadge(score: number) {
-  if (score >= 70) return 'bg-emerald-950 text-emerald-400'
+function completenessBadge(score: number) {
+  if (score >= 80) return 'bg-emerald-950 text-emerald-400'
+  if (score >= 60) return 'bg-blue-950 text-blue-400'
   if (score >= 40) return 'bg-yellow-950 text-yellow-400'
   return 'bg-gray-100 text-gray-400'
 }
@@ -47,8 +48,10 @@ export type ProspectRow = {
   website: string | null
   email: string | null
   phone: string | null
+  postal_address: string | null
   business_type: string | null
-  fit_score: number | null
+  employee_count_est: string | null
+  completeness_score: number | null
   status: string
   letter_generated_at: string | null
   letter_posted_at: string | null
@@ -65,21 +68,26 @@ interface Props {
 
 export function ProspectsTable({ prospects }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [result, setResult] = useState<{ sent: number; skipped: number; failed: string[] } | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [emailResult, setEmailResult] = useState<{ sent: number; skipped: number; failed: string[] } | null>(null)
+  const [batchInfo, setBatchInfo] = useState<{ type: 'print' | 'email'; remaining: number } | null>(null)
+  const [isEmailPending, startEmailTransition] = useTransition()
+  const [isPrintPending, startPrintTransition] = useTransition()
+  const [isAutoSelectPending, startAutoSelectTransition] = useTransition()
 
-  // Only emaileable prospects can be selected
+  const selectableIds = prospects
+    .filter(p => !['not_suitable', 'lost'].includes(p.status))
+    .map(p => p.id)
   const emailableIds = prospects
     .filter(p => p.email && !['not_suitable', 'lost'].includes(p.status))
     .map(p => p.id)
 
-  const allSelected = emailableIds.length > 0 && emailableIds.every(id => selected.has(id))
+  const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id))
 
   function toggleAll() {
     if (allSelected) {
       setSelected(new Set())
     } else {
-      setSelected(new Set(emailableIds))
+      setSelected(new Set(selectableIds))
     }
   }
 
@@ -93,21 +101,101 @@ export function ProspectsTable({ prospects }: Props) {
   }
 
   function handleBulkSend() {
-    setResult(null)
-    startTransition(async () => {
+    setEmailResult(null)
+    setBatchInfo(null)
+    const toSend = Array.from(selected).filter(id => emailableIds.includes(id))
+    if (toSend.length === 0) return
+    startEmailTransition(async () => {
       const res = await fetch('/api/admin/prospects/bulk-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prospect_ids: Array.from(selected) }),
+        body: JSON.stringify({ prospect_ids: toSend }),
       })
       const data = await res.json()
-      setResult(data)
+      setEmailResult(data)
       setSelected(new Set())
     })
   }
 
+  function handleBulkPrint() {
+    setBatchInfo(null)
+    startPrintTransition(async () => {
+      try {
+        const res = await fetch('/api/admin/prospects/bulk-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prospect_ids: Array.from(selected) }),
+        })
+        if (!res.ok) throw new Error('PDF generation failed')
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `roweo-acquisition-letters-${new Date().toISOString().split('T')[0]}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+        setSelected(new Set())
+      } catch (err) {
+        alert('Failed to generate PDF. Check console.')
+        console.error(err)
+      }
+    })
+  }
+
+  function handleAutoSelect(type: 'print' | 'email') {
+    setEmailResult(null)
+    setBatchInfo(null)
+    startAutoSelectTransition(async () => {
+      const res = await fetch(`/api/admin/prospects/next-batch?type=${type}&limit=100`)
+      const data = await res.json()
+      if (!res.ok || !data.ids) return
+      setSelected(new Set(data.ids as string[]))
+      setBatchInfo({ type, remaining: data.total_remaining as number })
+    })
+  }
+
+  const selectedEmailCount = Array.from(selected).filter(id => emailableIds.includes(id)).length
+
   return (
     <>
+      {/* Auto-select bar */}
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Auto-select next 100:</span>
+        <button
+          onClick={() => handleAutoSelect('print')}
+          disabled={isAutoSelectPending || isPrintPending || isEmailPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm text-gray-700 transition-colors disabled:opacity-50"
+        >
+          {isAutoSelectPending
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Wand2 className="w-3.5 h-3.5 text-gray-400" />
+          }
+          For print
+        </button>
+        <button
+          onClick={() => handleAutoSelect('email')}
+          disabled={isAutoSelectPending || isPrintPending || isEmailPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm text-gray-700 transition-colors disabled:opacity-50"
+        >
+          {isAutoSelectPending
+            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            : <Wand2 className="w-3.5 h-3.5 text-gray-400" />
+          }
+          For email
+        </button>
+      </div>
+
+      {/* Batch info banner */}
+      {batchInfo && (
+        <div className="mb-3 px-4 py-2.5 rounded-lg bg-blue-50 border border-blue-100 text-sm text-blue-800 flex items-center justify-between">
+          <span>
+            <span className="font-semibold">{selected.size} prospects</span> selected for {batchInfo.type} —{' '}
+            <span className="text-blue-600">{batchInfo.remaining.toLocaleString()} total remaining in queue</span>
+          </span>
+          <button onClick={() => { setSelected(new Set()); setBatchInfo(null) }} className="text-blue-400 hover:text-blue-700 text-xs ml-4">Clear</button>
+        </div>
+      )}
+
       {/* Bulk action bar */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -119,7 +207,7 @@ export function ProspectsTable({ prospects }: Props) {
               ? <CheckSquare className="w-4 h-4 text-blue-500" />
               : <Square className="w-4 h-4" />
             }
-            {allSelected ? 'Deselect all' : `Select all with email (${emailableIds.length})`}
+            {allSelected ? 'Deselect all' : `Select all (${selectableIds.length})`}
           </button>
           {selected.size > 0 && (
             <span className="text-sm text-blue-600 font-medium">{selected.size} selected</span>
@@ -127,25 +215,39 @@ export function ProspectsTable({ prospects }: Props) {
         </div>
 
         {selected.size > 0 && (
-          <button
-            onClick={handleBulkSend}
-            disabled={isPending}
-            className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
-          >
-            {isPending
-              ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
-              : <><Mail className="w-4 h-4" /> Send personalised emails ({selected.size})</>
-            }
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBulkPrint}
+              disabled={isPrintPending || isEmailPending}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
+            >
+              {isPrintPending
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+                : <><Printer className="w-4 h-4" /> Print letters ({selected.size})</>
+              }
+            </button>
+            {selectedEmailCount > 0 && (
+              <button
+                onClick={handleBulkSend}
+                disabled={isEmailPending || isPrintPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
+              >
+                {isEmailPending
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                  : <><Mail className="w-4 h-4" /> Send emails ({selectedEmailCount})</>
+                }
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       {/* Result banner */}
-      {result && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${result.failed.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
-          <span className="font-medium">{result.sent} sent</span>
-          {result.skipped > 0 && <span className="ml-2 text-gray-500">· {result.skipped} skipped (no email / already sent)</span>}
-          {result.failed.length > 0 && <span className="ml-2 text-red-600">· {result.failed.length} failed: {result.failed.slice(0, 3).join(', ')}{result.failed.length > 3 ? '…' : ''}</span>}
+      {emailResult && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${emailResult.failed.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+          <span className="font-medium">{emailResult.sent} sent</span>
+          {emailResult.skipped > 0 && <span className="ml-2 text-gray-500">· {emailResult.skipped} skipped (no email / already sent)</span>}
+          {emailResult.failed.length > 0 && <span className="ml-2 text-red-600">· {emailResult.failed.length} failed: {emailResult.failed.slice(0, 3).join(', ')}{emailResult.failed.length > 3 ? '…' : ''}</span>}
         </div>
       )}
 
@@ -168,7 +270,8 @@ export function ProspectsTable({ prospects }: Props) {
               <th className="px-4 py-3 w-8" />
               <th className="text-left px-4 py-3">Company</th>
               <th className="text-left px-4 py-3">Type</th>
-              <th className="text-left px-4 py-3">Fit</th>
+              <th className="text-left px-4 py-3">Employees</th>
+              <th className="text-left px-4 py-3" title="Data completeness score 0–100%">Complete</th>
               <th className="text-left px-4 py-3">Status</th>
               <th className="text-left px-4 py-3" title="Letter generated / letter posted">Letter</th>
               <th className="text-left px-4 py-3" title="Interactive email sent">Email</th>
@@ -178,7 +281,7 @@ export function ProspectsTable({ prospects }: Props) {
           </thead>
           <tbody>
             {prospects.map(p => {
-              const canEmail = !!p.email && !['not_suitable', 'lost'].includes(p.status)
+              const canSelect = !['not_suitable', 'lost'].includes(p.status)
               const isSelected = selected.has(p.id)
               return (
                 <tr
@@ -186,7 +289,7 @@ export function ProspectsTable({ prospects }: Props) {
                   className={`border-b border-gray-100 transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
                 >
                   <td className="px-4 py-3">
-                    {canEmail ? (
+                    {canSelect ? (
                       <button onClick={() => toggle(p.id)} className="flex items-center justify-center">
                         {isSelected
                           ? <CheckSquare className="w-4 h-4 text-blue-500" />
@@ -212,11 +315,23 @@ export function ProspectsTable({ prospects }: Props) {
                     {p.phone && (
                       <span className="block text-xs text-gray-500">{p.phone}</span>
                     )}
+                    {p.postal_address && (
+                      <span className="block text-xs text-gray-400 truncate max-w-44">{p.postal_address}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500">{p.business_type?.replace(/_/g, ' ') ?? '—'}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${fitBadge(p.fit_score ?? 0)}`}>
-                      {p.fit_score ?? '?'}
+                    {p.employee_count_est ? (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full whitespace-nowrap">
+                        {p.employee_count_est === '1' ? 'Sole trader' : `${p.employee_count_est} staff`}
+                      </span>
+                    ) : (
+                      <span className="text-gray-300 text-sm">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${completenessBadge(p.completeness_score ?? 0)}`}>
+                      {p.completeness_score ?? 0}%
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -254,7 +369,7 @@ export function ProspectsTable({ prospects }: Props) {
             })}
             {prospects.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-16 text-center text-gray-400 text-sm">
+                <td colSpan={10} className="px-4 py-16 text-center text-gray-400 text-sm">
                   No prospects match these filters.
                 </td>
               </tr>

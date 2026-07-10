@@ -520,7 +520,7 @@ export default async function DemoPage() {
             href="/signup"
             className="inline-block bg-white hover:bg-gray-100 text-[#1B2A4A] font-bold px-10 py-4 rounded-lg transition-colors text-lg"
           >
-            Get started from $149/month
+            Get started — letters from $249/month
           </Link>
           <p className="text-blue-300 text-sm mt-4">No contracts. Cancel any time.</p>
         </div>

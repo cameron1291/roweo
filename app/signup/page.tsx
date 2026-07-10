@@ -13,6 +13,19 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  function passwordStrength(pw: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
+    if (!pw) return { level: 0, label: '', color: '' }
+    let score = 0
+    if (pw.length >= 8) score++
+    if (pw.length >= 12) score++
+    if (/[A-Z]/.test(pw) && /[0-9]/.test(pw)) score++
+    if (score === 1) return { level: 1, label: 'Weak', color: 'bg-red-400' }
+    if (score === 2) return { level: 2, label: 'Good', color: 'bg-yellow-400' }
+    return { level: 3, label: 'Strong', color: 'bg-green-500' }
+  }
+
+  const strength = passwordStrength(password)
   const [verificationPending, setVerificationPending] = useState(false)
   const [resending, setResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(false)
@@ -224,6 +237,22 @@ export default function SignupPage() {
                 </button>
               </div>
             </div>
+
+            {password && (
+              <div>
+                <div className="flex gap-1 mb-1">
+                  {[1, 2, 3].map(n => (
+                    <div
+                      key={n}
+                      className={`h-1 flex-1 rounded-full transition-colors ${n <= strength.level ? strength.color : 'bg-gray-200'}`}
+                    />
+                  ))}
+                </div>
+                <p className={`text-xs ${strength.level === 1 ? 'text-red-500' : strength.level === 2 ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {strength.label} password
+                </p>
+              </div>
+            )}
 
             <button
               type="submit"

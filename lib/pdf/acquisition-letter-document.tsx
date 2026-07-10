@@ -287,7 +287,7 @@ export interface AcquisitionLetterProps {
   letterDate?: string
 }
 
-export function AcquisitionLetterDocument({ props }: { props: AcquisitionLetterProps }) {
+export function AcquisitionLetterPage({ props }: { props: AcquisitionLetterProps }) {
   const date = (props.letterDate ?? new Date().toLocaleDateString('en-AU', {
     day: 'numeric', month: 'long', year: 'numeric',
   })).toUpperCase()
@@ -295,7 +295,6 @@ export function AcquisitionLetterDocument({ props }: { props: AcquisitionLetterP
   const stats = props.stats ?? { dasThisMonth: 47, matchingSuburbs: 3, avgResponseRate: '3.8%' }
 
   return (
-    <Document>
       <Page size="A4" style={S.page}>
 
         {/* HEADER */}
@@ -446,6 +445,13 @@ export function AcquisitionLetterDocument({ props }: { props: AcquisitionLetterP
         </View>
 
       </Page>
+  )
+}
+
+export function AcquisitionLetterDocument({ props }: { props: AcquisitionLetterProps }) {
+  return (
+    <Document>
+      <AcquisitionLetterPage props={props} />
     </Document>
   )
 }

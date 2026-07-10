@@ -106,6 +106,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-blue-200/30">
             <p>© {new Date().getFullYear()} Roweo Pty Ltd. ABN 31 683 026 924. Built in Australia.</p>
+            <a href="mailto:hello@roweo.com.au" className="hover:text-white transition-colors">hello@roweo.com.au</a>
           </div>
         </div>
       </footer>
