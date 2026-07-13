@@ -47,7 +47,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
   // DA stats — try their specific suburbs first, fall back to Sydney-wide if 0
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  let stats = { dasThisMonth: 0, matchingSuburbs: 0, avgResponseRate: '3.8%' }
+  let stats = { dasThisMonth: 0, matchingSuburbs: 0, avgResponseRate: '2 days' }
 
   if (prospect.service_suburbs?.length > 0) {
     const { count } = await supabase

@@ -383,7 +383,7 @@ export function AcquisitionLetterPage({ props }: { props: AcquisitionLetterProps
                 <View style={S.miniStat}>
                   <TrendIcon />
                   <Text style={S.miniStatVal}>{stats.avgResponseRate}</Text>
-                  <Text style={S.miniStatLabel}>Average{'\n'}Scan Rate</Text>
+                  <Text style={S.miniStatLabel}>To{'\n'}doorstep</Text>
                 </View>
               </View>
             </View>

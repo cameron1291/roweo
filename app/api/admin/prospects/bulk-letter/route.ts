@@ -10,6 +10,15 @@ const schema = z.object({
   prospect_ids: z.array(z.string().uuid()).min(1).max(100),
 })
 
+const SYDNEY_SUBURBS = [
+  'Parramatta','Blacktown','Liverpool','Penrith','Campbelltown','Hornsby','Ryde',
+  'Sutherland','Randwick','Leichhardt','Newtown','Glebe','Balmain','Marrickville',
+  'Ashfield','Strathfield','Auburn','Bankstown','Hurstville','Rockdale','Kogarah',
+  'Manly','Dee Why','Frenchs Forest','Chatswood','Lane Cove','Mosman','Cremorne',
+  'Bondi','Coogee','Maroubra','Cronulla','Miranda','Caringbah','Engadine',
+  'Castle Hill','Baulkham Hills','Kellyville','Bella Vista','Norwest',
+]
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,7 +42,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No valid prospects found' }, { status: 404 })
   }
 
-  // Load Roweo logo once — embed as base64 so react-pdf can render without fs issues
   let logoDataUrl: string | undefined
   try {
     const logoPath = path.join(process.cwd(), 'public', 'logo.png')
@@ -41,27 +49,30 @@ export async function POST(req: NextRequest) {
     logoDataUrl = `data:image/png;base64,${logoBuffer.toString('base64')}`
   } catch { /* skip if missing */ }
 
-  // Get Sydney-wide DA stats for the stats panel (same fallback as single preview)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  const SYDNEY_SUBURBS = [
-    'Parramatta','Blacktown','Liverpool','Penrith','Campbelltown','Hornsby','Ryde',
-    'Sutherland','Randwick','Leichhardt','Newtown','Glebe','Balmain','Marrickville',
-    'Ashfield','Strathfield','Auburn','Bankstown','Hurstville','Rockdale','Kogarah',
-    'Manly','Dee Why','Frenchs Forest','Chatswood','Lane Cove','Mosman','Cremorne',
-    'Bondi','Coogee','Maroubra','Cronulla','Miranda','Caringbah','Engadine',
-    'Castle Hill','Baulkham Hills','Kellyville','Bella Vista','Norwest',
-  ]
+
+  // Collect every unique suburb across all prospects, then hit the DB once
+  const allSuburbs = [...new Set((prospects as any[]).flatMap(p => (p.service_suburbs ?? []) as string[]))]
+
+  const suburbDaCounts: Record<string, number> = {}
+  if (allSuburbs.length > 0) {
+    const { data: daRows } = await serviceClient
+      .from('development_applications')
+      .select('suburb')
+      .in('suburb', allSuburbs)
+      .gte('lodged_date', thirtyDaysAgo)
+    for (const row of daRows ?? []) {
+      suburbDaCounts[row.suburb] = (suburbDaCounts[row.suburb] ?? 0) + 1
+    }
+  }
+
+  // Sydney-wide fallback for prospects whose specific suburbs aren't in the DB yet
   const { count: sydneyCount } = await serviceClient
     .from('development_applications')
     .select('id', { count: 'exact', head: true })
     .in('suburb', SYDNEY_SUBURBS)
     .gte('lodged_date', thirtyDaysAgo)
-
-  const sharedStats = {
-    dasThisMonth: sydneyCount ?? 47,
-    matchingSuburbs: 40,
-    avgResponseRate: '3.8%',
-  }
+  const sydneyFallback = sydneyCount ?? 47
 
   const rawUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
   const APP_URL = rawUrl.includes('localhost') ? 'https://roweo.com.au' : rawUrl
@@ -71,6 +82,10 @@ export async function POST(req: NextRequest) {
     const demoUrl = p.demo_slug ? `${APP_URL}/demo/${p.demo_slug}` : `${APP_URL}/demo`
     const suburbs: string[] = p.service_suburbs ?? []
     const serviceArea = suburbs.length > 0 ? suburbs.slice(0, 3).join(', ') : 'your service area'
+
+    const dasThisMonth = suburbs.reduce((sum, s) => sum + (suburbDaCounts[s] ?? 0), 0)
+    const matchingSuburbs = suburbs.filter(s => (suburbDaCounts[s] ?? 0) > 0).length
+
     return {
       prospectCompanyName: p.company_name,
       prospectAddress: p.postal_address ?? undefined,
@@ -78,14 +93,17 @@ export async function POST(req: NextRequest) {
       serviceArea,
       logoDataUrl,
       demoUrl,
-      stats: sharedStats,
+      stats: {
+        dasThisMonth: dasThisMonth > 0 ? dasThisMonth : sydneyFallback,
+        matchingSuburbs: matchingSuburbs > 0 ? matchingSuburbs : (suburbs.length || 40),
+        avgResponseRate: '2 days',
+      },
       letterDate,
     }
   })
 
   const pdf = await generateAcquisitionBatchPdf(letterProps)
 
-  // Mark all as letter_generated_at + letter_printed_at
   const now = new Date().toISOString()
   await serviceClient
     .from('builder_prospects')
