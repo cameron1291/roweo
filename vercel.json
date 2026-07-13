@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app/api/admin/prospects/bulk-email/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/admin/prospects/bulk-letter/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/admin/batch-pdf/route.ts": {
+      "maxDuration": 300
+    }
+  }
+}

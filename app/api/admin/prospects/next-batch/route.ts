@@ -49,11 +49,13 @@ export async function GET(req: NextRequest) {
   } else {
     batchQuery = batchQuery
       .is('interactive_email_sent_at', null)
+      .is('letter_printed_at', null)      // don't email the same people already printed to
       .not('email', 'is', null)
       .not('demo_slug', 'is', null)
       .not('email_unsubscribed', 'is', true)
     countQuery = countQuery
       .is('interactive_email_sent_at', null)
+      .is('letter_printed_at', null)
       .not('email', 'is', null)
       .not('demo_slug', 'is', null)
       .not('email_unsubscribed', 'is', true)

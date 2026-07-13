@@ -4,6 +4,8 @@ import { buildInteractiveDemoEmail } from '@/lib/emails/interactive-demo-email'
 import { sendEmail } from '@/lib/resend'
 import { z } from 'zod'
 
+export const maxDuration = 300 // 5 minutes — 100 emails need ~20s minimum
+
 async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -112,8 +114,8 @@ export async function POST(req: NextRequest) {
 
     sent++
 
-    // 200ms delay between sends to stay within Resend rate limits
-    if (sent < prospects.length) await new Promise(r => setTimeout(r, 200))
+    // 100ms delay between sends — enough to stay under Resend's 10 req/s limit
+    if (sent < prospects.length) await new Promise(r => setTimeout(r, 100))
   }
 
   return NextResponse.json({ sent, skipped, failed, skippedReasons })
