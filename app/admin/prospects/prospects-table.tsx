@@ -73,6 +73,7 @@ export function ProspectsTable({ prospects }: Props) {
   const [isEmailPending, startEmailTransition] = useTransition()
   const [isPrintPending, startPrintTransition] = useTransition()
   const [isAutoSelectPending, startAutoSelectTransition] = useTransition()
+  const [isAutoSendPending, startAutoSendTransition] = useTransition()
 
   const selectableIds = prospects
     .filter(p => !['not_suitable', 'lost'].includes(p.status))
@@ -150,7 +151,7 @@ export function ProspectsTable({ prospects }: Props) {
     })
   }
 
-  function handleAutoSelect(type: 'print' | 'email') {
+  function handleAutoSelect(type: 'print') {
     setEmailResult(null)
     setBatchInfo(null)
     startAutoSelectTransition(async () => {
@@ -162,43 +163,72 @@ export function ProspectsTable({ prospects }: Props) {
     })
   }
 
+  function handleAutoSendEmail() {
+    setEmailResult(null)
+    setBatchInfo(null)
+    startAutoSendTransition(async () => {
+      try {
+        const res = await fetch('/api/admin/prospects/bulk-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auto_select: true, limit: 100 }),
+        })
+        const text = await res.text()
+        let data: { sent: number; skipped: number; failed: string[]; error?: string; totalRemaining?: number }
+        try { data = JSON.parse(text) }
+        catch { data = { sent: 0, skipped: 0, failed: [], error: `Server error ${res.status}` } }
+        if (!res.ok && !data.error) data.error = `Request failed (${res.status})`
+        setEmailResult(data)
+        if (data.totalRemaining !== undefined) {
+          setBatchInfo({ type: 'email', remaining: data.totalRemaining })
+        }
+      } catch (err) {
+        setEmailResult({ sent: 0, skipped: 0, failed: [], error: err instanceof Error ? err.message : 'Network error' })
+      }
+    })
+  }
+
   return (
     <>
-      {/* Auto-select bar */}
+      {/* Auto-select / auto-send bar */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Auto-select next 100:</span>
+        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Quick actions:</span>
         <button
           onClick={() => handleAutoSelect('print')}
-          disabled={isAutoSelectPending || isPrintPending || isEmailPending}
+          disabled={isAutoSelectPending || isPrintPending || isEmailPending || isAutoSendPending}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm text-gray-700 transition-colors disabled:opacity-50"
         >
           {isAutoSelectPending
             ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
             : <Wand2 className="w-3.5 h-3.5 text-gray-400" />
           }
-          For print
+          Select 100 for print
         </button>
         <button
-          onClick={() => handleAutoSelect('email')}
-          disabled={isAutoSelectPending || isPrintPending || isEmailPending}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm text-gray-700 transition-colors disabled:opacity-50"
+          onClick={handleAutoSendEmail}
+          disabled={isAutoSendPending || isPrintPending || isEmailPending || isAutoSelectPending}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-blue-200 bg-blue-50 hover:bg-blue-100 text-sm text-blue-700 font-medium transition-colors disabled:opacity-50"
         >
-          {isAutoSelectPending
-            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            : <Wand2 className="w-3.5 h-3.5 text-gray-400" />
+          {isAutoSendPending
+            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending 100…</>
+            : <><Mail className="w-3.5 h-3.5" /> Send next 100 emails</>
           }
-          For email
         </button>
       </div>
 
       {/* Batch info banner */}
-      {batchInfo && (
+      {batchInfo && batchInfo.type === 'print' && (
         <div className="mb-3 px-4 py-2.5 rounded-lg bg-blue-50 border border-blue-100 text-sm text-blue-800 flex items-center justify-between">
           <span>
-            <span className="font-semibold">{selected.size} prospects</span> selected for {batchInfo.type} —{' '}
+            <span className="font-semibold">{selected.size} prospects</span> selected for print —{' '}
             <span className="text-blue-600">{batchInfo.remaining.toLocaleString()} total remaining in queue</span>
           </span>
           <button onClick={() => { setSelected(new Set()); setBatchInfo(null) }} className="text-blue-400 hover:text-blue-700 text-xs ml-4">Clear</button>
+        </div>
+      )}
+      {batchInfo && batchInfo.type === 'email' && (
+        <div className="mb-3 px-4 py-2.5 rounded-lg bg-emerald-50 border border-emerald-100 text-sm text-emerald-800">
+          <span className="text-emerald-600">{batchInfo.remaining.toLocaleString()} prospects remaining in email queue</span>
         </div>
       )}
 

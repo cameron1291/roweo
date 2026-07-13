@@ -16,9 +16,10 @@ async function requireAdmin() {
   return serviceClient
 }
 
-const bodySchema = z.object({
-  prospect_ids: z.array(z.string().uuid()).min(1).max(200),
-})
+const bodySchema = z.union([
+  z.object({ auto_select: z.literal(true), limit: z.number().int().min(1).max(200).default(100) }),
+  z.object({ prospect_ids: z.array(z.string().uuid()).min(1).max(200) }),
+])
 
 export async function POST(req: NextRequest) {
   const supabase = await requireAdmin()
@@ -28,48 +29,70 @@ export async function POST(req: NextRequest) {
   const parsed = bodySchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const { prospect_ids } = parsed.data
+  const EXCLUDED_STATUSES = ['not_suitable', 'lost']
 
-  const { data: prospects, error: dbError } = await supabase
-    .from('builder_prospects')
-    .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
-    .in('id', prospect_ids)
+  let prospects
+  let totalRemaining = 0
 
-  if (dbError) {
-    console.error('[bulk-email] DB error:', dbError)
-    return NextResponse.json({ error: `DB error: ${dbError.message}`, sent: 0, skipped: 0, failed: [], skippedReasons: {} }, { status: 500 })
+  if ('auto_select' in parsed.data) {
+    // Server does its own selection — no client IDs needed
+    const limit = parsed.data.limit ?? 100
+    const [batchResult, countResult] = await Promise.all([
+      supabase
+        .from('builder_prospects')
+        .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+        .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
+        .is('interactive_email_sent_at', null)
+        .is('letter_printed_at', null)
+        .not('email', 'is', null)
+        .not('demo_slug', 'is', null)
+        .not('email_unsubscribed', 'is', true)
+        .order('completeness_score', { ascending: false })
+        .order('created_at', { ascending: true })
+        .limit(limit),
+      supabase
+        .from('builder_prospects')
+        .select('id', { count: 'exact', head: true })
+        .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
+        .is('interactive_email_sent_at', null)
+        .is('letter_printed_at', null)
+        .not('email', 'is', null)
+        .not('demo_slug', 'is', null)
+        .not('email_unsubscribed', 'is', true),
+    ])
+    if (batchResult.error) {
+      return NextResponse.json({ error: `DB error: ${batchResult.error.message}` }, { status: 500 })
+    }
+    prospects = batchResult.data ?? []
+    totalRemaining = countResult.count ?? 0
+  } else {
+    // Manual selection — look up the provided IDs
+    const { data, error: dbError } = await supabase
+      .from('builder_prospects')
+      .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+      .in('id', parsed.data.prospect_ids)
+    if (dbError) {
+      return NextResponse.json({ error: `DB error: ${dbError.message}` }, { status: 500 })
+    }
+    prospects = data ?? []
   }
-  if (!prospects?.length) {
-    console.error('[bulk-email] No prospects found. IDs received:', prospect_ids.length, prospect_ids.slice(0, 3))
-    return NextResponse.json({ error: `No prospects found — server received ${prospect_ids.length} IDs`, sent: 0, skipped: 0, failed: [], skippedReasons: {} }, { status: 404 })
+
+  if (!prospects.length) {
+    return NextResponse.json({ sent: 0, skipped: 0, failed: [], skippedReasons: {}, totalRemaining })
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
-
   let skipped = 0
   const failed: string[] = []
   const skippedReasons: Record<string, string> = {}
 
-  // Build the batch — filter out ineligible prospects first
-  type BatchItem = {
-    prospectId: string
-    companyName: string
-    email: string
-    subject: string
-    html: string
-  }
+  type BatchItem = { prospectId: string; companyName: string; email: string; subject: string; html: string }
   const batch: BatchItem[] = []
 
   for (const prospect of prospects) {
-    if (!prospect.email) {
-      skipped++; skippedReasons[prospect.company_name as string] = 'no email'; continue
-    }
-    if (prospect.email_unsubscribed) {
-      skipped++; skippedReasons[prospect.company_name as string] = 'unsubscribed'; continue
-    }
-    if (!prospect.demo_slug) {
-      skipped++; skippedReasons[prospect.company_name as string] = 'no demo page'; continue
-    }
+    if (!prospect.email) { skipped++; skippedReasons[prospect.company_name as string] = 'no email'; continue }
+    if (prospect.email_unsubscribed) { skipped++; skippedReasons[prospect.company_name as string] = 'unsubscribed'; continue }
+    if (!prospect.demo_slug) { skipped++; skippedReasons[prospect.company_name as string] = 'no demo page'; continue }
     if (prospect.interactive_email_sent_at) {
       const sentAt = new Date(prospect.interactive_email_sent_at as string).getTime()
       if (Date.now() - sentAt < 7 * 24 * 60 * 60 * 1000) {
@@ -96,25 +119,18 @@ export async function POST(req: NextRequest) {
   }
 
   if (batch.length === 0) {
-    return NextResponse.json({ sent: 0, skipped, failed, skippedReasons })
+    return NextResponse.json({ sent: 0, skipped, failed, skippedReasons, totalRemaining })
   }
 
-  // Send all eligible emails in one Resend batch call
   const resend = getResend()
-  const { data: batchData, error: batchError } = await resend.batch.send(
-    batch.map(b => ({
-      from: FROM_EMAIL,
-      to: b.email,
-      subject: b.subject,
-      html: b.html,
-    }))
+  const { error: batchError } = await resend.batch.send(
+    batch.map(b => ({ from: FROM_EMAIL, to: b.email, subject: b.subject, html: b.html }))
   )
 
   if (batchError) {
     return NextResponse.json({ error: batchError.message, sent: 0, skipped, failed: batch.map(b => b.companyName), skippedReasons }, { status: 500 })
   }
 
-  // Mark all as sent in the DB (parallel bulk update)
   const now = new Date().toISOString()
   const sentIds = batch.map(b => b.prospectId)
 
@@ -133,5 +149,5 @@ export async function POST(req: NextRequest) {
     ),
   ])
 
-  return NextResponse.json({ sent: batch.length, skipped, failed, skippedReasons })
+  return NextResponse.json({ sent: batch.length, skipped, failed, skippedReasons, totalRemaining: Math.max(0, totalRemaining - batch.length) })
 }
