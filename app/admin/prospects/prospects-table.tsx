@@ -77,9 +77,6 @@ export function ProspectsTable({ prospects }: Props) {
   const selectableIds = prospects
     .filter(p => !['not_suitable', 'lost'].includes(p.status))
     .map(p => p.id)
-  const emailableIds = prospects
-    .filter(p => p.email && !['not_suitable', 'lost'].includes(p.status))
-    .map(p => p.id)
 
   const allSelected = selectableIds.length > 0 && selectableIds.every(id => selected.has(id))
 
@@ -103,7 +100,7 @@ export function ProspectsTable({ prospects }: Props) {
   function handleBulkSend() {
     setEmailResult(null)
     setBatchInfo(null)
-    const toSend = Array.from(selected).filter(id => emailableIds.includes(id))
+    const toSend = Array.from(selected)
     if (toSend.length === 0) return
     startEmailTransition(async () => {
       try {
@@ -164,8 +161,6 @@ export function ProspectsTable({ prospects }: Props) {
       setBatchInfo({ type, remaining: data.total_remaining as number })
     })
   }
-
-  const selectedEmailCount = Array.from(selected).filter(id => emailableIds.includes(id)).length
 
   return (
     <>
@@ -237,18 +232,16 @@ export function ProspectsTable({ prospects }: Props) {
                 : <><Printer className="w-4 h-4" /> Print letters ({selected.size})</>
               }
             </button>
-            {selectedEmailCount > 0 && (
-              <button
-                onClick={handleBulkSend}
-                disabled={isEmailPending || isPrintPending}
-                className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
-              >
-                {isEmailPending
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
-                  : <><Mail className="w-4 h-4" /> Send emails ({selectedEmailCount})</>
-                }
-              </button>
-            )}
+            <button
+              onClick={handleBulkSend}
+              disabled={isEmailPending || isPrintPending}
+              className="flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
+            >
+              {isEmailPending
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                : <><Mail className="w-4 h-4" /> Send emails ({selected.size})</>
+              }
+            </button>
           </div>
         )}
       </div>
