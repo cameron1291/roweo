@@ -30,12 +30,19 @@ export async function POST(req: NextRequest) {
 
   const { prospect_ids } = parsed.data
 
-  const { data: prospects } = await supabase
+  const { data: prospects, error: dbError } = await supabase
     .from('builder_prospects')
     .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
     .in('id', prospect_ids)
 
-  if (!prospects?.length) return NextResponse.json({ error: 'No prospects found' }, { status: 404 })
+  if (dbError) {
+    console.error('[bulk-email] DB error:', dbError)
+    return NextResponse.json({ error: `DB error: ${dbError.message}`, sent: 0, skipped: 0, failed: [], skippedReasons: {} }, { status: 500 })
+  }
+  if (!prospects?.length) {
+    console.error('[bulk-email] No prospects found. IDs received:', prospect_ids.length, prospect_ids.slice(0, 3))
+    return NextResponse.json({ error: `No prospects found — server received ${prospect_ids.length} IDs`, sent: 0, skipped: 0, failed: [], skippedReasons: {} }, { status: 404 })
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
 
