@@ -16,10 +16,11 @@ async function requireAdmin() {
   return serviceClient
 }
 
-const bodySchema = z.union([
-  z.object({ auto_select: z.literal(true), limit: z.number().int().min(1).max(200).default(100) }),
-  z.object({ prospect_ids: z.array(z.string().uuid()).min(1).max(200) }),
-])
+const bodySchema = z.object({
+  auto_select: z.boolean().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  prospect_ids: z.array(z.string().uuid()).min(1).max(200).optional(),
+})
 
 export async function POST(req: NextRequest) {
   const supabase = await requireAdmin()
@@ -29,14 +30,15 @@ export async function POST(req: NextRequest) {
   const parsed = bodySchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
+  const { auto_select, limit, prospect_ids } = parsed.data
   const EXCLUDED_STATUSES = ['not_suitable', 'lost']
 
   let prospects
   let totalRemaining = 0
 
-  if ('auto_select' in parsed.data) {
+  if (auto_select) {
     // Server does its own selection — no client IDs needed
-    const limit = parsed.data.limit ?? 100
+    const batchLimit = limit ?? 100
     const [batchResult, countResult] = await Promise.all([
       supabase
         .from('builder_prospects')
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
         .not('email_unsubscribed', 'is', true)
         .order('completeness_score', { ascending: false })
         .order('created_at', { ascending: true })
-        .limit(limit),
+        .limit(batchLimit),
       supabase
         .from('builder_prospects')
         .select('id', { count: 'exact', head: true })
@@ -67,10 +69,13 @@ export async function POST(req: NextRequest) {
     totalRemaining = countResult.count ?? 0
   } else {
     // Manual selection — look up the provided IDs
+    if (!prospect_ids?.length) {
+      return NextResponse.json({ error: 'Provide prospect_ids or auto_select:true' }, { status: 400 })
+    }
     const { data, error: dbError } = await supabase
       .from('builder_prospects')
       .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
-      .in('id', parsed.data.prospect_ids)
+      .in('id', prospect_ids)
     if (dbError) {
       return NextResponse.json({ error: `DB error: ${dbError.message}` }, { status: 500 })
     }
