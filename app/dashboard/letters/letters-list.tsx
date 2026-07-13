@@ -104,11 +104,13 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
   const [revenue, setRevenue] = useState('')
   const [description, setDescription] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   async function handleSubmit() {
     if (!letter) return
     setSaving(true)
-    await fetch('/api/outcomes', {
+    setSaveError(null)
+    const res = await fetch('/api/outcomes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -119,9 +121,15 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
       }),
     })
     setSaving(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setSaveError(data.error ?? 'Could not save outcome — please try again.')
+      return
+    }
     setRevenue('')
     setDescription('')
     setOutcomeType('enquiry')
+    setSaveError(null)
     onSaved()
   }
 
@@ -158,8 +166,11 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
           </div>
         </div>
 
+        {saveError && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{saveError}</p>
+        )}
         <DialogFooter>
-          <Button variant="ghost" onClick={() => { setOutcomeType('enquiry'); setRevenue(''); setDescription(''); onClose() }}>Cancel</Button>
+          <Button variant="ghost" onClick={() => { setOutcomeType('enquiry'); setRevenue(''); setDescription(''); setSaveError(null); onClose() }}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={saving}>
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle className="w-4 h-4 mr-1" /> Save outcome</>}
           </Button>

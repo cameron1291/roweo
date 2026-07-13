@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Mail, QrCode, MessageSquare, FileCheck, Trophy, DollarSign, ArrowRight } from 'lucide-react'
+import { Mail, QrCode, MessageSquare, FileCheck, Trophy, Bell, ArrowRight } from 'lucide-react'
 import { MapSection } from './map/map-section'
 import { getSuburbLatLng, SYDNEY_FALLBACK } from '@/lib/suburb-centroids'
 
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
         <StatCard icon={MessageSquare} label="Enquiries" value={enquiries} />
         <StatCard icon={FileCheck} label="Quotes" value={quotes} />
         <StatCard icon={Trophy} label="Jobs won" value={jobsWon} />
-        <StatCard icon={DollarSign} label="New leads (7d)" value={newLeads} />
+        <StatCard icon={Bell} label="New leads (7d)" value={newLeads} />
       </div>
 
       {/* Recent leads */}

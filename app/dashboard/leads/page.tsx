@@ -6,21 +6,26 @@ export default async function LeadsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: leads } = await supabase
-    .from('lead_matches')
-    .select(`
-      id, status, scan_count, builder_note, matched_at, trigger_stage,
-      development_applications(suburb, state, project_type, description, lodged_date, estimated_value_aud, da_number)
-    `)
-    .eq('user_id', user.id)
-    .order('matched_at', { ascending: false })
-    .limit(100)
+  const [{ data: leads }, { data: profile }] = await Promise.all([
+    supabase
+      .from('lead_matches')
+      .select(`
+        id, status, scan_count, builder_note, matched_at, trigger_stage,
+        development_applications(suburb, state, project_type, description, lodged_date, estimated_value_aud, da_number)
+      `)
+      .eq('user_id', user.id)
+      .order('matched_at', { ascending: false })
+      .limit(100),
+    supabase.from('profiles').select('plan').eq('id', user.id).single(),
+  ])
+
+  const plan = (profile?.plan ?? 'starter') as string
 
   return (
     <div className="max-w-4xl">
       <h1 className="text-xl font-semibold text-gray-900 mb-1">Leads</h1>
       <p className="text-sm text-gray-500 mb-6">Development applications matched to your service area and project types.</p>
-      <LeadsBoard leads={(leads as any) ?? []} />
+      <LeadsBoard leads={(leads as any) ?? []} plan={plan} />
     </div>
   )
 }

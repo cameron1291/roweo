@@ -145,7 +145,7 @@ export async function sendAccountSuspendedEmail(to: string) {
       <h2 style="color:#fff;margin-top:0">Account paused</h2>
       <p>Your Roweo subscription has ended. We've stopped matching you to new DAs and posting letters.</p>
       <p>Ready to come back? Resubscribe any time — your service area settings and letter template are still saved.</p>
-      <p>${btn('Reactivate your account', `${APP_URL}/dashboard/settings/billing`)}</p>
+      <p>${btn('Reactivate your account', `${APP_URL}/pricing`)}</p>
     `),
   })
 }

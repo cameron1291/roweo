@@ -67,12 +67,12 @@ export async function createCheckoutSession(userId: string, email: string, plan:
   })
 }
 
-export async function createLetterPackCheckout(userId: string, email: string, customerId: string, pack: keyof typeof LETTER_PACKS) {
+export async function createLetterPackCheckout(userId: string, email: string, customerId: string | undefined, pack: keyof typeof LETTER_PACKS) {
   const stripe = getStripe()
   return stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
-    customer: customerId,
+    customer: customerId || undefined,
     customer_email: customerId ? undefined : email,
     line_items: [{ price: LETTER_PACKS[pack].priceId, quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?letters=added`,

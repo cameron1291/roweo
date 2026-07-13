@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       const session = await createLetterPackCheckout(
         user.id,
         profile?.email ?? user.email ?? '',
-        profile?.stripe_customer_id ?? '',
+        profile?.stripe_customer_id || undefined,
         pack
       )
       return NextResponse.json({ url: session.url })

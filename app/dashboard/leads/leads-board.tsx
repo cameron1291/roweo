@@ -41,11 +41,14 @@ function formatProjectType(type?: string) {
   return type.split('_').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')
 }
 
-export function LeadsBoard({ leads }: { leads: Lead[] }) {
+export function LeadsBoard({ leads, plan }: { leads: Lead[]; plan: string }) {
   const router = useRouter()
   const [tab, setTab] = useState('all')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [approveError, setApproveError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+
+  const hasLetters = plan !== 'starter'
 
   function filterLeads(t: string) {
     if (t === 'all') return leads
@@ -55,12 +58,18 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
 
   async function doAction(matchId: string, action: 'view' | 'save' | 'ignore') {
     setBusyId(matchId)
-    await fetch(`/api/leads/${matchId}/action`, {
+    setActionError(null)
+    const res = await fetch(`/api/leads/${matchId}/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action }),
     })
     setBusyId(null)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setActionError(data.error ?? 'Action failed — please try again.')
+      return
+    }
     router.refresh()
   }
 
@@ -88,6 +97,16 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
           {approveError}
         </div>
       )}
+      {actionError && (
+        <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {actionError}
+        </div>
+      )}
+      {!hasLetters && (
+        <div className="mb-3 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-md px-3 py-2">
+          Your Starter plan doesn't include letters. <a href="/dashboard/settings/billing" className="underline font-medium">Upgrade to Professional</a> to send letters to homeowners.
+        </div>
+      )}
       <TabsList>
         {TABS.map(t => (
           <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
@@ -99,6 +118,7 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
           <LeadList
             leads={filterLeads(t.id)}
             busyId={busyId}
+            hasLetters={hasLetters}
             onView={id => doAction(id, 'view')}
             onSave={id => doAction(id, 'save')}
             onIgnore={id => doAction(id, 'ignore')}
@@ -111,10 +131,11 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
 }
 
 function LeadList({
-  leads, busyId, onView, onSave, onIgnore, onApproveLetter,
+  leads, busyId, hasLetters, onView, onSave, onIgnore, onApproveLetter,
 }: {
   leads: Lead[]
   busyId: string | null
+  hasLetters: boolean
   onView: (id: string) => void
   onSave: (id: string) => void
   onIgnore: (id: string) => void
@@ -172,7 +193,7 @@ function LeadList({
                     <X className="w-3 h-3" /> Ignore
                   </Button>
                 )}
-                {!['letter_approved', 'printed', 'posted', 'scanned', 'ignored'].includes(lead.status) && (
+                {hasLetters && !['letter_approved', 'printed', 'posted', 'scanned', 'ignored'].includes(lead.status) && (
                   <Button size="sm" onClick={() => onApproveLetter(lead.id)} disabled={busy} className="gap-1 text-xs h-7">
                     {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />} Approve & queue letter
                   </Button>

@@ -14,6 +14,7 @@ const PLAN_DISPLAY: Record<string, { name: string; price: string; description: s
   starter: { name: 'Starter', price: '$149/mo', description: 'DA alerts + dashboard + 10km radius' },
   professional: { name: 'Professional', price: '$249/mo', description: '20 letters/month + 20km radius' },
   growth: { name: 'Growth', price: '$349/mo', description: '50 letters/month + up to 50km radius' },
+  inactive: { name: 'No plan', price: '—', description: 'Subscription ended' },
 }
 
 // Plans a given plan can upgrade to, in order
@@ -204,8 +205,8 @@ export function BillingPanel({ subscriptionStatus, hasCustomer, plan, lettersRem
         )}
       </div>
 
-      {/* Letter pack top-ups */}
-      {isSubscribed && (
+      {/* Letter pack top-ups — Starter has 0 letter quota, packs are useless to them */}
+      {isSubscribed && plan !== 'starter' && (
         <div className="space-y-3">
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Top up letters</h3>

@@ -83,7 +83,7 @@ export default async function HomePage() {
                 href="/signup"
                 className="bg-white hover:bg-blue-50 text-[#1B2A4A] font-bold px-8 py-4 rounded-lg transition-colors text-base shadow-lg"
               >
-                Get started — letters from $249/month
+                Get started — from $149/month
               </Link>
               <Link
                 href="/demo"

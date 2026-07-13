@@ -26,12 +26,26 @@ export async function POST(req: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('subscription_status')
+    .select('subscription_status, plan')
     .eq('id', user.id)
     .single()
 
   if (!profile || !['active', 'past_due'].includes(profile.subscription_status ?? '')) {
     return NextResponse.json({ error: 'An active subscription is required to send letters' }, { status: 403 })
+  }
+
+  if (profile.plan === 'starter') {
+    return NextResponse.json({ error: 'Your Starter plan doesn\'t include letters. Upgrade to Professional to send letters.' }, { status: 403 })
+  }
+
+  const { data: builderQuota } = await supabase
+    .from('builder_profiles')
+    .select('letters_remaining')
+    .eq('user_id', user.id)
+    .single()
+
+  if ((builderQuota?.letters_remaining ?? 0) <= 0) {
+    return NextResponse.json({ error: 'You\'ve used all your letters for this month. Top up in Billing or wait until your quota resets.' }, { status: 403 })
   }
 
   const { data: match } = await supabase
@@ -78,6 +92,9 @@ Write the 3-paragraph letter body. Paragraph 1: mention noticing their DA and th
     .eq('user_id', user.id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Decrement quota — non-fatal if it fails (quota is advisory, not a hard lock)
+  try { await supabase.rpc('add_letters', { p_user_id: user.id, p_amount: -1 }) } catch { /* non-fatal */ }
 
   await supabase.from('audit_logs').insert({
     user_id: user.id,
