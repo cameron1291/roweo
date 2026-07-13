@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const [batchResult, countResult] = await Promise.all([
       supabase
         .from('builder_prospects')
-        .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+        .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, interactive_email_sent_at')
         .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
         .is('interactive_email_sent_at', null)
         .is('letter_printed_at', null)
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     // Manual selection — look up the provided IDs
     const { data, error: dbError } = await supabase
       .from('builder_prospects')
-      .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+      .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, interactive_email_sent_at')
       .in('id', prospect_ids)
     if (dbError) {
       return NextResponse.json({ error: `DB error: ${dbError.message}` }, { status: 500 })
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       const [batchResult, countResult] = await Promise.all([
         supabase
           .from('builder_prospects')
-          .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+          .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, interactive_email_sent_at')
           .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
           .is('interactive_email_sent_at', null)
           .is('letter_printed_at', null)
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
     const { subject, html } = buildInteractiveDemoEmail({
       companyName: prospect.company_name as string,
-      contactName: (prospect.contact_name as string | null) ?? null,
+      contactName: null,
       suburbs: suburbs.length > 0 ? suburbs : ['your area'],
       openUrl,
       demoUrl,
