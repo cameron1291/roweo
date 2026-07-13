@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { Loader2, Mail, CheckSquare, Square, Printer, Wand2 } from 'lucide-react'
+import { Loader2, Mail, CheckSquare, Square, Printer, Wand2, Phone } from 'lucide-react'
 
 const STATUS_STYLES: Record<string, string> = {
   scraped: 'bg-gray-100 text-gray-500',
@@ -214,6 +214,14 @@ export function ProspectsTable({ prospects }: Props) {
             : <><Mail className="w-3.5 h-3.5" /> Send next 100 emails</>
           }
         </button>
+        <a
+          href="/api/admin/prospects/export-calls?limit=100"
+          download
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-sm text-emerald-700 font-medium transition-colors"
+        >
+          <Phone className="w-3.5 h-3.5" />
+          Export 100 for calls
+        </a>
       </div>
 
       {/* Batch info banner */}
