@@ -68,7 +68,7 @@ interface Props {
 
 export function ProspectsTable({ prospects }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [emailResult, setEmailResult] = useState<{ sent: number; skipped: number; failed: string[] } | null>(null)
+  const [emailResult, setEmailResult] = useState<{ sent: number; skipped: number; failed: string[]; error?: string } | null>(null)
   const [batchInfo, setBatchInfo] = useState<{ type: 'print' | 'email'; remaining: number } | null>(null)
   const [isEmailPending, startEmailTransition] = useTransition()
   const [isPrintPending, startPrintTransition] = useTransition()
@@ -106,14 +106,25 @@ export function ProspectsTable({ prospects }: Props) {
     const toSend = Array.from(selected).filter(id => emailableIds.includes(id))
     if (toSend.length === 0) return
     startEmailTransition(async () => {
-      const res = await fetch('/api/admin/prospects/bulk-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prospect_ids: toSend }),
-      })
-      const data = await res.json()
-      setEmailResult(data)
-      setSelected(new Set())
+      try {
+        const res = await fetch('/api/admin/prospects/bulk-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prospect_ids: toSend }),
+        })
+        const text = await res.text()
+        let data: { sent: number; skipped: number; failed: string[]; error?: string }
+        try {
+          data = JSON.parse(text)
+        } catch {
+          data = { sent: 0, skipped: 0, failed: [], error: `Server error ${res.status} — check Vercel logs` }
+        }
+        if (!res.ok && !data.error) data.error = `Request failed (${res.status})`
+        setEmailResult(data)
+        setSelected(new Set())
+      } catch (err) {
+        setEmailResult({ sent: 0, skipped: 0, failed: [], error: err instanceof Error ? err.message : 'Network error — try again' })
+      }
     })
   }
 
@@ -244,10 +255,15 @@ export function ProspectsTable({ prospects }: Props) {
 
       {/* Result banner */}
       {emailResult && (
-        <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${emailResult.failed.length > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
-          <span className="font-medium">{emailResult.sent} sent</span>
-          {emailResult.skipped > 0 && <span className="ml-2 text-gray-500">· {emailResult.skipped} skipped (no email / already sent)</span>}
-          {emailResult.failed.length > 0 && <span className="ml-2 text-red-600">· {emailResult.failed.length} failed: {emailResult.failed.slice(0, 3).join(', ')}{emailResult.failed.length > 3 ? '…' : ''}</span>}
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${emailResult.error ? 'bg-red-50 border-red-200 text-red-800' : (emailResult.failed?.length ?? 0) > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
+          {emailResult.error
+            ? <span className="font-medium">Error: {emailResult.error}</span>
+            : <>
+                <span className="font-medium">{emailResult.sent} sent</span>
+                {emailResult.skipped > 0 && <span className="ml-2 text-gray-500">· {emailResult.skipped} skipped (no email / already sent)</span>}
+                {(emailResult.failed?.length ?? 0) > 0 && <span className="ml-2 text-red-600">· {emailResult.failed.length} failed: {emailResult.failed.slice(0, 3).join(', ')}{emailResult.failed.length > 3 ? '…' : ''}</span>}
+              </>
+          }
         </div>
       )}
 
