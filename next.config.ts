@@ -22,6 +22,7 @@ const securityHeaders = [
   },
 ]
 
+// build: 2026-07-13
 const nextConfig: NextConfig = {
   transpilePackages: ['mapbox-gl'],
   async headers() {
