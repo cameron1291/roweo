@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     .eq('user_id', user.id)
     .single()
 
-  if ((builderQuota?.letters_remaining ?? 0) <= 0) {
+  // Only block if quota is explicitly exhausted — NULL means not yet initialised (allow through)
+  if (builderQuota?.letters_remaining !== null && builderQuota?.letters_remaining !== undefined && builderQuota.letters_remaining <= 0) {
     return NextResponse.json({ error: 'You\'ve used all your letters for this month. Top up in Billing or wait until your quota resets.' }, { status: 403 })
   }
 
