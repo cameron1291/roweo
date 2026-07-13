@@ -67,11 +67,8 @@ export async function POST(req: NextRequest) {
     }
     prospects = batchResult.data ?? []
     totalRemaining = countResult.count ?? 0
-  } else {
+  } else if (prospect_ids?.length) {
     // Manual selection — look up the provided IDs
-    if (!prospect_ids?.length) {
-      return NextResponse.json({ error: 'Provide prospect_ids or auto_select:true' }, { status: 400 })
-    }
     const { data, error: dbError } = await supabase
       .from('builder_prospects')
       .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
@@ -79,7 +76,38 @@ export async function POST(req: NextRequest) {
     if (dbError) {
       return NextResponse.json({ error: `DB error: ${dbError.message}` }, { status: 500 })
     }
-    prospects = data ?? []
+    // If provided IDs yield no results (stale client state), fall back to auto-select
+    if (!data?.length) {
+      const [batchResult, countResult] = await Promise.all([
+        supabase
+          .from('builder_prospects')
+          .select('id, company_name, email, email_unsubscribed, demo_slug, service_suburbs, contact_name, interactive_email_sent_at')
+          .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
+          .is('interactive_email_sent_at', null)
+          .is('letter_printed_at', null)
+          .not('email', 'is', null)
+          .not('demo_slug', 'is', null)
+          .not('email_unsubscribed', 'is', true)
+          .order('completeness_score', { ascending: false })
+          .order('created_at', { ascending: true })
+          .limit(100),
+        supabase
+          .from('builder_prospects')
+          .select('id', { count: 'exact', head: true })
+          .not('status', 'in', `(${EXCLUDED_STATUSES.map(s => `"${s}"`).join(',')})`)
+          .is('interactive_email_sent_at', null)
+          .is('letter_printed_at', null)
+          .not('email', 'is', null)
+          .not('demo_slug', 'is', null)
+          .not('email_unsubscribed', 'is', true),
+      ])
+      prospects = batchResult.data ?? []
+      totalRemaining = countResult.count ?? 0
+    } else {
+      prospects = data
+    }
+  } else {
+    return NextResponse.json({ error: 'Provide prospect_ids or auto_select:true' }, { status: 400 })
   }
 
   if (!prospects.length) {
