@@ -48,11 +48,8 @@ export default function SignupPage() {
       return
     }
 
-    fetch('/api/auth/welcome', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name: fullName }),
-    }).catch(() => {})
+    // Welcome email is sent by /auth/callback after email confirmation.
+    // Don't send here — it would fire before the user has verified their address.
 
     // session is null when Supabase requires email confirmation
     if (!data.session) {
@@ -145,7 +142,7 @@ export default function SignupPage() {
 
         <div className="border-t border-white/10 pt-6">
           <p className="text-xs text-blue-300/60 leading-relaxed">
-            Currently live in NSW and ACT. DA intelligence from $149/month. Letters from $249/month. No contract.
+            Currently live in NSW and ACT. Starter from $149/month · Professional (with letters) from $249/month. No contract.
           </p>
         </div>
       </div>

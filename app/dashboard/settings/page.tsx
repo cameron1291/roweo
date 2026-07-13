@@ -11,7 +11,15 @@ export default async function SettingsPage() {
     supabase.from('profiles').select('plan').eq('id', user.id).single(),
   ])
 
-  if (!builder) return null
+  if (!builder) return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">
+      <p className="text-sm font-medium text-amber-800">Your profile isn&apos;t set up yet.</p>
+      <p className="text-sm text-amber-700 mt-1">
+        Complete onboarding to configure your account.{' '}
+        <a href="/onboarding" className="underline font-medium">Go to onboarding →</a>
+      </p>
+    </div>
+  )
 
   return (
     <div>

@@ -25,7 +25,6 @@ const PLANS = [
       'Builder dashboard — leads, filters, saved searches',
       'NSW + ACT DA data',
       'Email notifications on new matches',
-      'Analytics — match volume and suburb trends',
     ],
   },
   {
@@ -91,7 +90,7 @@ const FAQ_SCHEMA = {
     {
       '@type': 'Question',
       name: 'What states do you cover?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Currently live in NSW and ACT. Victoria and Queensland are launching soon — join the waitlist during signup and we\'ll notify you when your state goes live.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Currently live in NSW and ACT. Victoria and Queensland are coming soon.' },
     },
     {
       '@type': 'Question',
@@ -203,7 +202,7 @@ export default function PricingPage() {
               },
               {
                 q: 'What states do you cover?',
-                a: 'Currently live in NSW and ACT. Victoria and Queensland are launching soon — join the waitlist during signup and we\'ll notify you when your state goes live.',
+                a: 'Currently live in NSW and ACT. Victoria and Queensland are coming soon.',
               },
               {
                 q: 'What\'s the difference between Professional and Growth?',

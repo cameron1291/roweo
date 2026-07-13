@@ -45,6 +45,7 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
   const router = useRouter()
   const [tab, setTab] = useState('all')
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [approveError, setApproveError] = useState<string | null>(null)
 
   function filterLeads(t: string) {
     if (t === 'all') return leads
@@ -73,14 +74,20 @@ export function LeadsBoard({ leads }: { leads: Lead[] }) {
     setBusyId(null)
     if (!res.ok) {
       const data = await res.json()
-      alert(data.error ?? 'Could not approve letter')
+      setApproveError(data.error ?? 'Could not approve letter — please try again.')
       return
     }
+    setApproveError(null)
     router.refresh()
   }
 
   return (
     <Tabs defaultValue="all" onValueChange={v => setTab(v as string)}>
+      {approveError && (
+        <div className="mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+          {approveError}
+        </div>
+      )}
       <TabsList>
         {TABS.map(t => (
           <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Mail, FileText, Settings, MapPin, BellRing } from 'lucide-react'
+import { LayoutDashboard, Mail, Settings, MapPin, BellRing } from 'lucide-react'
 
 const NAV = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },

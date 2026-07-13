@@ -153,7 +153,7 @@ function LogOutcomeDialog({ letter, onClose, onSaved }: { letter: Letter | null;
           )}
 
           <div className="space-y-1.5">
-            <Label>Notes (optional)</Label>
+            <Label>Project details (optional)</Label>
             <Input placeholder="Project details…" value={description} onChange={e => setDescription(e.target.value)} />
           </div>
         </div>

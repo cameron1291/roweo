@@ -12,8 +12,8 @@ import { Loader2, CheckCircle, Mail, ArrowRight } from 'lucide-react'
 
 const PLAN_DISPLAY: Record<string, { name: string; price: string; description: string }> = {
   starter: { name: 'Starter', price: '$149/mo', description: 'DA alerts + dashboard + 10km radius' },
-  professional: { name: 'Professional', price: '$199/mo', description: '10 letters/month + 20km radius' },
-  growth: { name: 'Growth', price: '$249/mo', description: '20 letters/month + 10–50km editable radius' },
+  professional: { name: 'Professional', price: '$249/mo', description: '20 letters/month + 20km radius' },
+  growth: { name: 'Growth', price: '$349/mo', description: '50 letters/month + up to 50km radius' },
 }
 
 // Plans a given plan can upgrade to, in order
@@ -164,22 +164,43 @@ export function BillingPanel({ subscriptionStatus, hasCustomer, plan, lettersRem
         </div>
       )}
 
+      {/* New subscriber — show plan picker */}
+      {!isSubscribed && !cancelled && (
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Choose a plan</p>
+          {(['starter', 'professional', 'growth'] as const).map(p => {
+            const pd = PLAN_DISPLAY[p]!
+            return (
+              <Card key={p} className="border-gray-200">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{pd.name} — {pd.price}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{pd.description}</p>
+                  </div>
+                  <Button size="sm" onClick={() => handleSubscribe(p)} disabled={loadingCheckout} className="shrink-0">
+                    {loadingCheckout ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
       <div className="flex items-center gap-3">
-        {isSubscribed ? (
+        {isSubscribed && (
           <>
             {hasCustomer && (
               <Button variant="secondary" onClick={handleManageBilling} disabled={loadingPortal}>
                 {loadingPortal ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Manage billing & invoices'}
               </Button>
             )}
-            <Button variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => setCancelOpen(true)}>
-              Cancel subscription
-            </Button>
+            {!cancelled && (
+              <Button variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => setCancelOpen(true)}>
+                Cancel subscription
+              </Button>
+            )}
           </>
-        ) : (
-          <Button onClick={() => handleSubscribe('starter')} disabled={loadingCheckout}>
-            {loadingCheckout ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe — from $149/mo AUD'}
-          </Button>
         )}
       </div>
 

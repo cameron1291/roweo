@@ -143,8 +143,7 @@ export default function OnboardingPage() {
     setSaving(true)
     setError('')
 
-    // Extract suburb names and states separately for storage
-    const suburbNames = form.service_suburbs.map(s => s.split(', ')[0])
+    // Keep suburbs in "Suburb, STATE" format — the API splits on comma to resolve coords
     const states = [...new Set(form.service_suburbs.map(s => s.split(', ')[1]).filter(Boolean))]
 
     const res = await fetch('/api/builder/profile', {
@@ -152,7 +151,7 @@ export default function OnboardingPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...form,
-        service_suburbs: suburbNames,
+        service_suburbs: form.service_suburbs,
         service_states: states.length ? states : form.service_states,
       }),
     })
@@ -203,7 +202,7 @@ export default function OnboardingPage() {
           form.phone.trim().length > 0 &&
           form.license_number.trim().length > 0
         )
-      case 2: return form.service_suburbs.length > 0
+      case 2: return form.service_suburbs.length > 0 || form.service_states.length > 0
       case 3: return form.project_types.length > 0
       case 4:
         if (form.min_value_aud < 0) return false
@@ -324,23 +323,27 @@ export default function OnboardingPage() {
               <div>
                 <p className="text-xs text-gray-500 mb-2">Or filter by state to receive all DAs from that state:</p>
                 <div className="flex flex-wrap gap-2">
-                  {STATES.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => set('service_states', form.service_states.includes(s)
-                        ? form.service_states.filter(x => x !== s)
-                        : [...form.service_states, s]
-                      )}
-                      className={`px-3 py-1 rounded-full text-xs border transition-colors ${
-                        form.service_states.includes(s)
-                          ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                          : 'border-gray-300 text-gray-500 hover:border-gray-400'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {STATES.map(s => {
+                    const live = s === 'NSW' || s === 'ACT'
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => set('service_states', form.service_states.includes(s)
+                          ? form.service_states.filter(x => x !== s)
+                          : [...form.service_states, s]
+                        )}
+                        className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+                          form.service_states.includes(s)
+                            ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                            : 'border-gray-300 text-gray-500 hover:border-gray-400'
+                        }`}
+                      >
+                        {s}{!live && ' (coming soon)'}
+                      </button>
+                    )
+                  })}
                 </div>
+                <p className="text-xs text-amber-600 mt-2">DA data is currently live for NSW and ACT only.</p>
               </div>
             </div>
           )}
@@ -570,7 +573,7 @@ export default function OnboardingPage() {
       </Card>
 
       {/* Navigation */}
-      {step < 6 && (
+      {step <= 6 && !templateApproved && (
         <div className="flex items-center justify-between mt-4">
           <Button
             variant="ghost"
@@ -583,16 +586,18 @@ export default function OnboardingPage() {
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
-          <Button
-            onClick={step === 5 ? handleNextFromStep5 : () => setStep(s => s + 1)}
-            disabled={!canProceed() || saving}
-            className="gap-1"
-          >
-            {saving
-              ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
-              : <>{step === 5 ? 'Save & preview letter' : 'Next'} <ChevronRight className="w-4 h-4" /></>
-            }
-          </Button>
+          {step < 6 && (
+            <Button
+              onClick={step === 5 ? handleNextFromStep5 : () => setStep(s => s + 1)}
+              disabled={!canProceed() || saving}
+              className="gap-1"
+            >
+              {saving
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
+                : <>{step === 5 ? 'Save & preview letter' : 'Next'} <ChevronRight className="w-4 h-4" /></>
+              }
+            </Button>
+          )}
         </div>
       )}
     </div>

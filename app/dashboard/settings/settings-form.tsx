@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -215,7 +216,7 @@ export function SettingsForm({ builder, plan }: { builder: BuilderProfile; plan:
                 <p className="text-xs text-gray-400 mt-0.5">
                   {plan === 'growth'
                     ? 'Your map shows DAs within this distance of your business.'
-                    : 'Fixed at 25km on the Professional plan.'}
+                    : 'Fixed at 20km on the Professional plan.'}
                 </p>
               </div>
               <span className="text-sm font-semibold text-gray-900">{radiusKm}km</span>
@@ -253,7 +254,7 @@ export function SettingsForm({ builder, plan }: { builder: BuilderProfile; plan:
                 />
                 <p className="text-xs text-gray-500">
                   <Link href="/dashboard/settings/billing" className="text-blue-400 hover:text-blue-300">
-                    Upgrade to Growth ($249/mo)
+                    Upgrade to Growth ($349/mo)
                   </Link>{' '}to expand your radius up to 50km and access more leads.
                 </p>
               </div>
@@ -268,6 +269,55 @@ export function SettingsForm({ builder, plan }: { builder: BuilderProfile; plan:
         </Button>
         {saved && <span className="text-sm text-green-400 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saved</span>}
       </div>
+
+      <ChangePasswordCard />
     </div>
+  )
+}
+
+function ChangePasswordCard() {
+  const [newPassword, setNewPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setSaved(false)
+    if (newPassword.length < 8) { setError('Password must be at least 8 characters.'); return }
+    if (newPassword !== confirm) { setError('Passwords do not match.'); return }
+    setSaving(true)
+    const supabase = createClient()
+    const { error: err } = await supabase.auth.updateUser({ password: newPassword })
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    setSaved(true)
+    setNewPassword('')
+    setConfirm('')
+  }
+
+  return (
+    <Card className="border-gray-200">
+      <CardContent className="p-5 space-y-4">
+        <h2 className="text-sm font-medium text-gray-900">Change password</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md">{error}</p>}
+          {saved && <p className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Password updated.</p>}
+          <div className="space-y-1.5">
+            <Label htmlFor="new-pw">New password</Label>
+            <Input id="new-pw" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="At least 8 characters" autoComplete="new-password" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="confirm-pw">Confirm new password</Label>
+            <Input id="confirm-pw" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Same as above" autoComplete="new-password" />
+          </div>
+          <Button type="submit" variant="outline" disabled={saving}>
+            {saving ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving…</> : 'Update password'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

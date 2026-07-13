@@ -35,38 +35,39 @@ export default async function ScanPage({ params }: { params: Promise<{ token: st
 
   // Fire-and-forget: increment scan count, notify builder
   const now = new Date().toISOString()
-  await supabase
-    .from('lead_matches')
-    .update({
-      scan_count: match.scan_count + 1,
-      scanned_at: match.scanned_at ?? now,
-      status: 'scanned',
-    })
-    .eq('id', match.id)
-
-  await supabase.from('notifications').insert({
-    user_id: match.user_id,
-    type: 'letter_scanned',
-    title: `Your letter was scanned in ${da?.suburb ?? 'a service area'}`,
-    body: isFirstScan ? 'A homeowner just viewed your profile for the first time.' : 'A homeowner viewed your profile again.',
-    link: '/dashboard/letters',
-  })
-
-  // Send email to builder on every scan
   try {
-    const { data: { user: builderUser } } = await supabase.auth.admin.getUserById(match.user_id)
-    if (builderUser?.email) {
-      const scanCount = match.scan_count + 1
-      await sendEmail({
-        to: builderUser.email,
-        subject: `Your letter was scanned in ${da?.suburb ?? 'your area'}`,
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1F2937">
+    await supabase
+      .from('lead_matches')
+      .update({
+        scan_count: match.scan_count + 1,
+        scanned_at: match.scanned_at ?? now,
+        status: 'scanned',
+      })
+      .eq('id', match.id)
+  } catch { /* non-critical */ }
+
+  try {
+    await supabase.from('notifications').insert({
+      user_id: match.user_id,
+      type: 'letter_scanned',
+      title: `Your letter was scanned in ${da?.suburb ?? 'a service area'}`,
+      body: isFirstScan ? 'A homeowner just viewed your profile for the first time.' : 'A homeowner viewed your profile again.',
+      link: '/dashboard/letters',
+    })
+  } catch { /* non-critical */ }
+
+  // Send email to builder on first scan only
+  if (isFirstScan) {
+    try {
+      const { data: { user: builderUser } } = await supabase.auth.admin.getUserById(match.user_id)
+      if (builderUser?.email) {
+        await sendEmail({
+          to: builderUser.email,
+          subject: `Your letter was scanned in ${da?.suburb ?? 'your area'}`,
+          html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1F2937">
 <p style="font-size:15px;font-weight:600;margin:0 0 8px">A homeowner just scanned your letter 🎉</p>
 <p style="font-size:14px;color:#6B7280;margin:0 0 20px">
-${isFirstScan
-  ? `This is the first time someone has scanned your letter in <strong>${da?.suburb ?? 'your area'}</strong>.`
-  : `Someone scanned your letter in <strong>${da?.suburb ?? 'your area'}</strong> again (scan #${scanCount}).`
-}
+This is the first time someone has scanned your letter in <strong>${da?.suburb ?? 'your area'}</strong>.
 </p>
 <p style="font-size:13px;color:#6B7280">They landed on your profile page and can see your contact details, phone number, and quote form. Follow up quickly — early contact wins.</p>
 <p style="margin:20px 0">
@@ -75,10 +76,9 @@ ${isFirstScan
 <hr style="border:none;border-top:1px solid #E5E7EB;margin:20px 0">
 <p style="font-size:11px;color:#9CA3AF">Roweo · roweo.com.au</p>
 </div>`,
-      })
-    }
-  } catch {
-    // Non-critical — never block the homeowner's page render on email failure
+        })
+      }
+    } catch { /* non-critical */ }
   }
 
   // Admin notification on first scan only

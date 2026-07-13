@@ -74,12 +74,12 @@ export function LetterApprovalCard({ builder }: { builder: LetterFields }) {
         logo_url: logoUrl,
         letter_body_template: bodyText,
         letter_note: noteText,
-        ...(approve ? { letter_template_approved: true } : {}),
+        letter_template_approved: approve,
       }),
     })
     if (!res.ok) { setError('Save failed — please try again'); setSaving(false); return }
     setSaving(false)
-    if (approve) setApproved(true)
+    setApproved(approve)
     router.refresh()
   }
 

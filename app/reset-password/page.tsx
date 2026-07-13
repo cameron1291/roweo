@@ -26,6 +26,7 @@ function ResetPasswordForm() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const [ready, setReady] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
 
   useEffect(() => {
     const code = params.get('code')
@@ -51,7 +52,10 @@ function ResetPasswordForm() {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setReady(true)
     })
 
-    return () => subscription.unsubscribe()
+    // If no session is detected within 10s, show a fallback link
+    const timeout = setTimeout(() => setTimedOut(true), 10000)
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -112,9 +116,15 @@ function ResetPasswordForm() {
             {error && (
               <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{error}</p>
             )}
-            {!ready && (
+            {!ready && !timedOut && (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
                 Verifying your reset link…
+              </p>
+            )}
+            {!ready && timedOut && (
+              <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+                Your reset link has expired or is invalid.{' '}
+                <Link href="/forgot-password" className="underline font-medium">Request a new one →</Link>
               </p>
             )}
             <div className="space-y-1.5">
