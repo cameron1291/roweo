@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase-server'
 import { buildInteractiveDemoEmail } from '@/lib/emails/interactive-demo-email'
-import { sendEmail } from '@/lib/resend'
+import { getResend, FROM_EMAIL } from '@/lib/resend'
 import { z } from 'zod'
 
-export const maxDuration = 300 // 5 minutes — 100 emails need ~20s minimum
+export const maxDuration = 60
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -39,35 +39,34 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://roweo.com.au'
 
-  let sent = 0
   let skipped = 0
   const failed: string[] = []
   const skippedReasons: Record<string, string> = {}
 
+  // Build the batch — filter out ineligible prospects first
+  type BatchItem = {
+    prospectId: string
+    companyName: string
+    email: string
+    subject: string
+    html: string
+  }
+  const batch: BatchItem[] = []
+
   for (const prospect of prospects) {
-    // Skip checks
     if (!prospect.email) {
-      skipped++
-      skippedReasons[prospect.company_name] = 'no email'
-      continue
+      skipped++; skippedReasons[prospect.company_name as string] = 'no email'; continue
     }
     if (prospect.email_unsubscribed) {
-      skipped++
-      skippedReasons[prospect.company_name] = 'unsubscribed'
-      continue
+      skipped++; skippedReasons[prospect.company_name as string] = 'unsubscribed'; continue
     }
     if (!prospect.demo_slug) {
-      skipped++
-      skippedReasons[prospect.company_name] = 'no demo page'
-      continue
+      skipped++; skippedReasons[prospect.company_name as string] = 'no demo page'; continue
     }
-    // Don't resend within 7 days
     if (prospect.interactive_email_sent_at) {
-      const sentAt = new Date(prospect.interactive_email_sent_at).getTime()
+      const sentAt = new Date(prospect.interactive_email_sent_at as string).getTime()
       if (Date.now() - sentAt < 7 * 24 * 60 * 60 * 1000) {
-        skipped++
-        skippedReasons[prospect.company_name] = 'sent within last 7 days'
-        continue
+        skipped++; skippedReasons[prospect.company_name as string] = 'sent within last 7 days'; continue
       }
     }
 
@@ -86,37 +85,46 @@ export async function POST(req: NextRequest) {
       appUrl,
     })
 
-    const { error: sendError } = await sendEmail({
-      to: prospect.email as string,
-      subject,
-      html,
-    })
-
-    if (sendError) {
-      failed.push(prospect.company_name as string)
-      continue
-    }
-
-    const now = new Date().toISOString()
-    await Promise.all([
-      supabase.from('prospect_events').insert({
-        prospect_id: prospect.id,
-        event_type: 'interactive_email_sent',
-        channel: 'interactive_email',
-        metadata: { email: prospect.email, subject, bulk: true },
-        occurred_at: now,
-      }),
-      supabase.from('builder_prospects').update({
-        interactive_email_sent_at: now,
-        updated_at: now,
-      }).eq('id', prospect.id),
-    ])
-
-    sent++
-
-    // 100ms delay between sends — enough to stay under Resend's 10 req/s limit
-    if (sent < prospects.length) await new Promise(r => setTimeout(r, 100))
+    batch.push({ prospectId: prospect.id as string, companyName: prospect.company_name as string, email: prospect.email as string, subject, html })
   }
 
-  return NextResponse.json({ sent, skipped, failed, skippedReasons })
+  if (batch.length === 0) {
+    return NextResponse.json({ sent: 0, skipped, failed, skippedReasons })
+  }
+
+  // Send all eligible emails in one Resend batch call
+  const resend = getResend()
+  const { data: batchData, error: batchError } = await resend.batch.send(
+    batch.map(b => ({
+      from: FROM_EMAIL,
+      to: b.email,
+      subject: b.subject,
+      html: b.html,
+    }))
+  )
+
+  if (batchError) {
+    return NextResponse.json({ error: batchError.message, sent: 0, skipped, failed: batch.map(b => b.companyName), skippedReasons }, { status: 500 })
+  }
+
+  // Mark all as sent in the DB (parallel bulk update)
+  const now = new Date().toISOString()
+  const sentIds = batch.map(b => b.prospectId)
+
+  await Promise.all([
+    supabase.from('builder_prospects')
+      .update({ interactive_email_sent_at: now, updated_at: now })
+      .in('id', sentIds),
+    supabase.from('prospect_events').insert(
+      batch.map(b => ({
+        prospect_id: b.prospectId,
+        event_type: 'interactive_email_sent',
+        channel: 'interactive_email',
+        metadata: { email: b.email, subject: b.subject, bulk: true },
+        occurred_at: now,
+      }))
+    ),
+  ])
+
+  return NextResponse.json({ sent: batch.length, skipped, failed, skippedReasons })
 }
